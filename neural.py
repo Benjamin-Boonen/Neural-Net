@@ -1,3 +1,4 @@
+import math
 import random
 import numpy as np
 import ast
@@ -14,12 +15,14 @@ def sigmoid(x):
     return 1 / (1 + math.exp(-x))
     
 class Layer:
-    def __init__(self, size, next_layer_size=0, index=0, outp_=False, activ_fn=None, w=True, b=True, r=False):
+    def __init__(self, size, next_layer_size=0, index=0, outp_=False, w=True, b=True, r=False):
         self.values = np.zeros(size).astype(int).tolist()
         self.weights = []
         self.biases = []
         self.size = size
         self.index = index
+
+        
 
         if not(outp_):
             if r:
@@ -76,7 +79,22 @@ class Network:
                 # print("VECTOR", vector)
                 self.layers[i+1].values = vector.astype(float).tolist()
             if i == len(self.layers)-1:
-                return self.layers[i].values
+                return sigmoid(self.layers[i].values)
+
+    def mod_network(self, factor, is_random=False, fine_tune_mode=False):
+
+        if fine_tune_mode:
+            for i in range(len(self.layers)):
+                if is_random:
+                    self.layers[i].weights *= (1 + np.random.uniform(-factor, factor, self.layers[i].weights.shape))
+                else:
+                    self.layers[i].weights *= np.full_like(self.layers[i].weights, factor)
+        else:
+            for i in range(len(self.layers)):
+                if is_random:
+                    self.layers[i].weights += (1 + np.random.uniform(-factor, factor, self.layers[i].weights.shape))
+                else:
+                    self.layers[i].weights += np.full_like(self.layers[i].weights, factor)
 
     def gen_network(self, shape, is_random=False, weighted=True):
         for i in range(len(shape)):
