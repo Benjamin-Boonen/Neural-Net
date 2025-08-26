@@ -79,7 +79,7 @@ class Network:
                 # print("VECTOR", vector)
                 self.layers[i+1].values = sigmoid(vector).astype(float).tolist()
             if i == len(self.layers)-1:
-                return sigmoid(np.array(self.layers[i].values))
+                return sigmoid(np.array(self.layers[i].values)).astype(float).tolist()
 
     def mod_network(self, factor, is_random=False, fine_tune_mode=False):
 
@@ -151,6 +151,10 @@ def load_network(filename: str):
             n.layers[int((i-3)/3)].biases = ast.literal_eval(lines[i])
     return n
 
+def cost(recieved, expected):
+    difference = np.array(recieved) - np.array(expected)
+    dif_square = np.square(difference)
+    return np.sum(dif_square)
 
 # Example usage
 if __name__ == "__main__":
@@ -159,7 +163,9 @@ if __name__ == "__main__":
     # print(np.asmatrix(l.biases))
     n = Network(shape=[3, 2, 4], is_random=True)
     # n.show_network()
-    print(n.f_propagation([0, 1, 2]))
+    v = n.f_propagation([0, 1, 2])
+    print(v)
     input()
     save_network(n)
     print(load_network('network.nn'))
+    print(cost(v, [0, 1, 0, 0]))
