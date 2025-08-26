@@ -12,7 +12,7 @@ A layer contains:
 - " with the biases for the next layer (if not output)
 """
 def sigmoid(x):
-    return 1 / (1 + math.exp(-x))
+    return 1 / (1 + np.exp(-x))
     
 class Layer:
     def __init__(self, size, next_layer_size=0, index=0, outp_=False, w=True, b=True, r=False):
@@ -77,9 +77,9 @@ class Network:
                 vector = np.dot(self.layers[i].values, self.layers[i].weights)
                 vector += self.layers[i].biases
                 # print("VECTOR", vector)
-                self.layers[i+1].values = vector.astype(float).tolist()
+                self.layers[i+1].values = sigmoid(vector).astype(float).tolist()
             if i == len(self.layers)-1:
-                return sigmoid(self.layers[i].values)
+                return sigmoid(np.array(self.layers[i].values))
 
     def mod_network(self, factor, is_random=False, fine_tune_mode=False):
 
