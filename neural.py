@@ -11,9 +11,8 @@ A layer contains:
 - a (set of) vertical matrix(es) containing the weights for the next layer (if not output)
 - " with the biases for the next layer (if not output)
 """
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-    
+        
+
 class Layer:
     def __init__(self, size, next_layer_size=0, index=0, outp_=False, w=True, b=True, r=False):
         self.values = np.zeros(size).astype(int).tolist()
@@ -21,8 +20,6 @@ class Layer:
         self.biases = []
         self.size = size
         self.index = index
-
-        
 
         if not(outp_):
             if r:
@@ -65,21 +62,6 @@ class Network:
         self.shape = shape
         self.gen_network(self.shape, is_random=is_random, weighted=weighted)
 
-    def f_propagation(self, values):
-        if self.layers == []:
-            raise SyntaxError("The network has no associated layers, define those first.")
-
-        if len(values) != len(self.layers[0].values):
-            raise SyntaxError(f"The length of the input list needs to be the same as the first layer. Which is {len(self.layers[0].values)}")
-        
-        for i in range(len(self.layers)):
-            if i < len(self.layers)-1:
-                vector = np.dot(self.layers[i].values, self.layers[i].weights)
-                vector += self.layers[i].biases
-                # print("VECTOR", vector)
-                self.layers[i+1].values = sigmoid(vector).astype(float).tolist()
-            if i == len(self.layers)-1:
-                return sigmoid(np.array(self.layers[i].values)).astype(float).tolist()
 
     def mod_network(self, factor, is_random=False, fine_tune_mode=False):
 
@@ -151,10 +133,45 @@ def load_network(filename: str):
             n.layers[int((i-3)/3)].biases = ast.literal_eval(lines[i])
     return n
 
-def cost(recieved, expected):
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+    
+def calc_loss(recieved, expected):
     difference = np.array(recieved) - np.array(expected)
-    dif_square = np.square(difference)
-    return np.sum(dif_square)
+    loss = np.square(difference)
+    return loss
+
+def calc_cost(recieved, expected):
+    loss = calc_loss(recieved, expected)
+    return np.sum(loss)
+
+def f_propagation(network: Network, values):
+        if network.layers == []:
+            raise SyntaxError("The network has no associated layers, define those first.")
+
+        if len(values) != len(network.layers[0].values):
+            raise SyntaxError(f"The length of the input list needs to be the same as the first layer. Which is {len(network.layers[0].values)}")
+        
+        for i in range(len(network.layers)):
+            if i < len(network.layers)-1:
+                vector = np.dot(network.layers[i].values, network.layers[i].weights)
+                vector += network.layers[i].biases
+                # print("VECTOR", vector)
+                network.layers[i+1].values = sigmoid(vector).astype(float).tolist()
+            if i == len(network.layers)-1:
+                return sigmoid(np.array(network.layers[i].values)).astype(float).tolist()
+
+def b_propagation(network: Network, input, desired):
+    recieved = network.f_propagation(input)
+    for l in range(len(network.layers)-1):
+        loss = calc_loss(network.f_propagation(input), desired)
+        loss = loss[l]
+        d_relative_to_weights = []
+        # for i in range(len(network.layers))
+    # return a list of the gradient as [[weight_0, bias_0], ..., [weight_n, bias_n]]
+
+def gradient_descend(network: Network, learning_rate):
+    pass
 
 # Example usage
 if __name__ == "__main__":
@@ -163,9 +180,11 @@ if __name__ == "__main__":
     # print(np.asmatrix(l.biases))
     n = Network(shape=[3, 2, 4], is_random=True)
     # n.show_network()
-    v = n.f_propagation([0, 1, 2])
+    v = f_propagation(n, [0, 1, 2])
     print(v)
     input()
     save_network(n)
     print(load_network('network.nn'))
-    print(cost(v, [0, 1, 0, 0]))
+    print(calc_loss(v, [0, 1, 0, 0]))
+    print(calc_cost(v, [0, 1, 0, 0]))
+    # b_propagation(n, [0, 1, 2], [0, 1, 0, 0], 0.1)
