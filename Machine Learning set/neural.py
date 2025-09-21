@@ -1,4 +1,3 @@
-import math
 import random
 import numpy as np
 import ast
@@ -135,6 +134,10 @@ def load_network(filename: str):
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
+
+def sigmoid_derivative(z):
+    s = 1 / (1 + np.exp(-z))
+    return s * (1 - s)
     
 def calc_loss(recieved, expected):
     difference = np.array(recieved) - np.array(expected)
@@ -146,45 +149,65 @@ def calc_cost(recieved, expected):
     return np.sum(loss)
 
 def f_propagation(network: Network, values):
-        if network.layers == []:
-            raise SyntaxError("The network has no associated layers, define those first.")
+    if len(values) != len(network.layers[0].values):
+        raise SyntaxError(f"Input length {len(values)} != first layer size {len(network.layers[0].values)}")
+    
+    network.layers[0].values = values
+    
+    for i in range(len(network.layers)-1):
+        z = np.dot(network.layers[i].values, network.layers[i].weights) + network.layers[i].biases
+        network.layers[i+1].z_values = z  # store pre-activation
+        network.layers[i+1].values = sigmoid(z).tolist()
+    
+    return network.layers[-1].values
 
-        if len(values) != len(network.layers[0].values):
-            raise SyntaxError(f"The length of the input list needs to be the same as the first layer. Which is {len(network.layers[0].values)}")
-        
-        for i in range(len(network.layers)):
-            if i < len(network.layers)-1:
-                vector = np.dot(network.layers[i].values, network.layers[i].weights)
-                vector += network.layers[i].biases
-                # print("VECTOR", vector)
-                network.layers[i+1].values = sigmoid(vector).astype(float).tolist()
-            if i == len(network.layers)-1:
-                return sigmoid(np.array(network.layers[i].values)).astype(float).tolist()
+def b_propagation(network: Network, x, y, learning_rate=0.1):
+    # Forward pass
+    output = f_propagation(network, x)
 
-def b_propagation(network: Network, input, desired):
-    recieved = network.f_propagation(input)
+    # Convert to np arrays for math
+    y = np.array(y)
+    a_last = np.array(output)
+    z_last = np.array(network.layers[-1].z_values)
+
+    # Compute delta at output layer
+    delta = (a_last - y) * sigmoid_derivative(z_last)
+
+    # Store deltas for each layer (same size as layer)
+    deltas = [None] * len(network.layers)
+    deltas[-1] = delta
+
+    # Backpropagate deltas
+    for l in range(len(network.layers)-2, 0, -1):
+        z = np.array(network.layers[l].z_values)
+        sp = sigmoid_derivative(z)
+        delta = np.dot(deltas[l+1], np.array(network.layers[l].weights).T) * sp
+        deltas[l] = delta
+
+    # Update weights and biases
     for l in range(len(network.layers)-1):
-        loss = calc_loss(network.f_propagation(input), desired)
-        loss = loss[l]
-        d_relative_to_weights = []
-        # for i in range(len(network.layers))
-    # return a list of the gradient as [[weight_0, bias_0], ..., [weight_n, bias_n]]
+        a = np.array(network.layers[l].values, ndmin=2).tolist()
+        d = np.array(deltas[l+1], ndmin=2).tolist()
 
-def gradient_descend(network: Network, learning_rate):
-    pass
+        # Gradient descent update
+        network.layers[l].weights -= learning_rate * a.T.dot(d)
+        network.layers[l].biases -= learning_rate * d.flatten()
 
 # Example usage
 if __name__ == "__main__":
-    # l = Layer(3, 5, 1, r=True)
-    # print(np.asmatrix(l.weights))
-    # print(np.asmatrix(l.biases))
-    n = Network(shape=[3, 2, 4], is_random=True)
-    # n.show_network()
-    v = f_propagation(n, [0, 1, 2])
-    print(v)
-    input()
-    save_network(n)
-    print(load_network('network.nn'))
-    print(calc_loss(v, [0, 1, 0, 0]))
-    print(calc_cost(v, [0, 1, 0, 0]))
-    # b_propagation(n, [0, 1, 2], [0, 1, 0, 0], 0.1)
+    n = Network(shape=[2, 3, 1], is_random=True)
+    
+    # Train on XOR
+    data = [
+        ([0,0],[0]),
+        ([0,1],[1]),
+        ([1,0],[1]),
+        ([1,1],[0])
+    ]
+    
+    for epoch in range(10000):
+        x, y = random.choice(data)
+        b_propagation(n, x, y, learning_rate=0.5)
+    
+    for x, y in data:
+        print(x, f_propagation(n, x), "expected:", y)
