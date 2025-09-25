@@ -5,9 +5,15 @@ import uvicorn
 import os
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
+import neural, random
 
 app = FastAPI()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+ai = True
+
+if ai:
+    n = neural.Network([5, 10, 10, 2], is_random = True)
 
 # Canvas size (walls at edges)
 WORLD_WIDTH = 600
@@ -48,14 +54,23 @@ async def websocket_endpoint(ws: WebSocket):
         while True:
             throttle, steering = 0.0, 0.0
 
+            if not(ai):
             # Receive inputs
-            try:
-                msg = await asyncio.wait_for(ws.receive_text(), timeout=0.01)
-                command = json.loads(msg)
-                throttle = float(command.get("throttle", 0.0))
-                steering = float(command.get("steering", 0.0))
-            except asyncio.TimeoutError:
-                pass
+                try:
+                    msg = await asyncio.wait_for(ws.receive_text(), timeout=0.01)
+                    command = json.loads(msg)
+                    throttle = float(command.get("throttle", 0.0))
+                    steering = float(command.get("steering", 0.0))
+                except asyncio.TimeoutError:
+                    pass
+            else:
+                inp_ = [car["x"]/WORLD_WIDTH, car["y"]/WORLD_HEIGHT, neural.ign_div(car["angle"], 2), neural.ign_div(car["vel"], max_speed), neural.ign_div(car["steer_angle"], max_steer)]
+                throttle, steering = neural.f_propagation(n, inp_)
+                throttle = round(throttle, 3)
+                steering = round(steering, 2)
+                dest = [random.random()*2 -1, random.random()*2 -1]
+                print([throttle, steering], dest)
+                neural.b_propagation(n, inp_, [random.random()*2 -1, random.random()*2 -1], learning_rate=0.1)
 
             # Apply throttle
             if throttle > 0:

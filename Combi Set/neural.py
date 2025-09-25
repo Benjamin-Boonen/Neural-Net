@@ -11,6 +11,11 @@ A layer contains:
 - " with the biases for the next layer (if not output)
 """
         
+def ign_div(x, y):
+    try:
+        return x/y
+    except:
+        return 0
 
 class Layer:
     def __init__(self, size, next_layer_size=0, index=0, outp_=False, w=True, b=True, r=False):
