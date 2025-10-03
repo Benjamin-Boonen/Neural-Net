@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import ast
+import math
 
 
 """
@@ -205,9 +206,9 @@ if __name__ == "__main__":
         ([1,1],[0])
     ]
     
-    for epoch in range(100000):
+    for epoch in range(10000):
         x, y = random.choice(data)
         b_propagation(n, x, y, learning_rate=0.5)
     
     for x, y in data:
-        print(x, f_propagation(n, x), "expected:", y)
+        print(x, round(f_propagation(n, x)[0]), "expected:", y)

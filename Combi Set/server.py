@@ -11,9 +11,14 @@ app = FastAPI()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ai = True
+amt = 2
+
+networks = []
 
 if ai:
-    n = neural.Network([5, 10, 10, 2], is_random = True)
+    for i in range(amt):
+        n = neural.Network([5, 10, 10, 2], is_random = True)
+        networks.append(n)
 
 # Canvas size (walls at edges)
 WORLD_WIDTH = 600
@@ -28,15 +33,17 @@ async def get():
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
-
-    car = {
-        "id": 0,
-        "x": 300.0,
-        "y": 300.0,
-        "angle": 0.0,      # car body heading
-        "vel": 0.0,        # velocity
-        "steer_angle": 0.0 # wheel angle
-    }
+    cars = []
+    for i in range(amt):
+        car = {
+            "id": i,
+            "x": (WORLD_WIDTH/amt)*i,
+            "y": WORLD_HEIGHT/2,
+            "angle": 0.0,      # car body heading
+            "vel": 0.0,        # velocity
+            "steer_angle": 0.0 # wheel angle
+        }
+        cars.append(car)
 
     # Parameters
     accel_rate = 0.2
@@ -49,95 +56,97 @@ async def websocket_endpoint(ws: WebSocket):
     wheelbase = 30.0
     car_radius = 10
     bounce_factor = 0.3    # % of speed kept after bounce
-
     try:
         while True:
-            throttle, steering = 0.0, 0.0
+            car_states = []
+            for car in cars:
+                throttle, steering = 0.0, 0.0
 
-            if not(ai):
-            # Receive inputs
-                try:
-                    msg = await asyncio.wait_for(ws.receive_text(), timeout=0.01)
-                    command = json.loads(msg)
-                    throttle = float(command.get("throttle", 0.0))
-                    steering = float(command.get("steering", 0.0))
-                except asyncio.TimeoutError:
-                    pass
-            else:
-                inp_ = [car["x"]/WORLD_WIDTH, car["y"]/WORLD_HEIGHT, neural.ign_div(car["angle"], 2), neural.ign_div(car["vel"], max_speed), neural.ign_div(car["steer_angle"], max_steer)]
-                throttle, steering = neural.f_propagation(n, inp_)
-                throttle = round(throttle, 3)
-                steering = round(steering, 2)
-                dest = [random.random()*2 -1, random.random()*2 -1]
-                print([throttle, steering], dest)
-                neural.b_propagation(n, inp_, [random.random()*2 -1, random.random()*2 -1], learning_rate=0.1)
+                if not(ai):
+                # Receive inputs
+                    try:
+                        msg = await asyncio.wait_for(ws.receive_text(), timeout=0.01)
+                        command = json.loads(msg)
+                        throttle = float(command.get("throttle", 0.0))
+                        steering = float(command.get("steering", 0.0))
+                    except asyncio.TimeoutError:
+                        pass
+                else:
 
-            # Apply throttle
-            if throttle > 0:
-                car["vel"] += accel_rate * throttle
-            elif throttle < 0:
-                car["vel"] += brake_rate * throttle
+                    inp_ = [car["x"]/WORLD_WIDTH, car["y"]/WORLD_HEIGHT, neural.ign_div(car["angle"], 2), neural.ign_div(car["vel"], max_speed), neural.ign_div(car["steer_angle"], max_steer)]
+                    throttle, steering = neural.f_propagation(networks[car["id"]], inp_)
+                    throttle = round(throttle, 3)
+                    steering = round(steering, 2)
+                    print(car["id"], throttle, steering)
+                    #neural.b_propagation(n, inp_, learning_rate=0.1)
 
-            # Apply friction
-            if car["vel"] > 0:
-                car["vel"] -= friction
-                if car["vel"] < 0: car["vel"] = 0
-            elif car["vel"] < 0:
-                car["vel"] += friction
-                if car["vel"] > 0: car["vel"] = 0
+                # Apply throttle
+                if throttle > 0:
+                    car["vel"] += accel_rate * throttle
+                elif throttle < 0:
+                    car["vel"] += brake_rate * throttle
 
-            # Clamp velocity
-            car["vel"] = max(-max_speed, min(max_speed, car["vel"]))
+                # Apply friction
+                if car["vel"] > 0:
+                    car["vel"] -= friction
+                    if car["vel"] < 0: car["vel"] = 0
+                elif car["vel"] < 0:
+                    car["vel"] += friction
+                    if car["vel"] > 0: car["vel"] = 0
 
-            # Update steering
-            if steering != 0:
-                car["steer_angle"] += steering * steer_speed
-            else:
-                # Auto-center steering toward 0
-                if car["steer_angle"] > 0:
-                    car["steer_angle"] = max(0, car["steer_angle"] - steer_return)
-                elif car["steer_angle"] < 0:
-                    car["steer_angle"] = min(0, car["steer_angle"] + steer_return)
+                # Clamp velocity
+                car["vel"] = max(-max_speed, min(max_speed, car["vel"]))
 
-            car["steer_angle"] = max(-max_steer, min(max_steer, car["steer_angle"]))
+                # Update steering
+                if steering != 0:
+                    car["steer_angle"] += steering * steer_speed
+                else:
+                    # Auto-center steering toward 0
+                    if car["steer_angle"] > 0:
+                        car["steer_angle"] = max(0, car["steer_angle"] - steer_return)
+                    elif car["steer_angle"] < 0:
+                        car["steer_angle"] = min(0, car["steer_angle"] + steer_return)
 
-            # Update heading if moving
-            if abs(car["vel"]) > 0:
-                car["angle"] += (car["vel"] / wheelbase) * math.tan(car["steer_angle"])
+                car["steer_angle"] = max(-max_steer, min(max_steer, car["steer_angle"]))
 
-            # Move car
-            dx = math.cos(car["angle"])
-            dy = math.sin(car["angle"])
-            car["x"] += dx * car["vel"]
-            car["y"] += dy * car["vel"]
+                # Update heading if moving
+                if abs(car["vel"]) > 0:
+                    car["angle"] += (car["vel"] / wheelbase) * math.tan(car["steer_angle"])
 
-            # -------------------
-            # WALL COLLISION (bounce back)
-            # -------------------
-            if car["x"] < car_radius:
-                car["x"] = car_radius
-                car["vel"] = -car["vel"] * bounce_factor
-            elif car["x"] > WORLD_WIDTH - car_radius:
-                car["x"] = WORLD_WIDTH - car_radius
-                car["vel"] = -car["vel"] * bounce_factor
+                # Move car
+                dx = math.cos(car["angle"])
+                dy = math.sin(car["angle"])
+                car["x"] += dx * car["vel"]
+                car["y"] += dy * car["vel"]
 
-            if car["y"] < car_radius:
-                car["y"] = car_radius
-                car["vel"] = -car["vel"] * bounce_factor
-            elif car["y"] > WORLD_HEIGHT - car_radius:
-                car["y"] = WORLD_HEIGHT - car_radius
-                car["vel"] = -car["vel"] * bounce_factor
+                # -------------------
+                # WALL COLLISION (bounce back)
+                # -------------------
+                if car["x"] < car_radius:
+                    car["x"] = car_radius
+                    car["vel"] = -car["vel"] * bounce_factor
+                elif car["x"] > WORLD_WIDTH - car_radius:
+                    car["x"] = WORLD_WIDTH - car_radius
+                    car["vel"] = -car["vel"] * bounce_factor
 
-            # Send state
-            car_state = {
-                "id": car["id"],
-                "x": car["x"],
-                "y": car["y"],
-                "dir": [dx, dy],
-                "steer_angle": car["steer_angle"]
-            }
-            await ws.send_text(json.dumps([car_state]))
-            await asyncio.sleep(0.01)
+                if car["y"] < car_radius:
+                    car["y"] = car_radius
+                    car["vel"] = -car["vel"] * bounce_factor
+                elif car["y"] > WORLD_HEIGHT - car_radius:
+                    car["y"] = WORLD_HEIGHT - car_radius
+                    car["vel"] = -car["vel"] * bounce_factor
+
+                # Send state
+                car_state = {
+                    "id": car["id"],
+                    "x": car["x"],
+                    "y": car["y"],
+                    "dir": [dx, dy],
+                    "steer_angle": car["steer_angle"]
+                }
+                car_states.append(car_state)
+            await ws.send_text(json.dumps(car_states))
+            await asyncio.sleep(0.05)
 
     except Exception as e:
         print("WebSocket closed:", e)
