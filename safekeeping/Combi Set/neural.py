@@ -19,6 +19,13 @@ def ign_div(x, y):
 
 class Layer:
     def __init__(self, size, next_layer_size=0, index=0, outp_=False, w=True, b=True, r=False):
+        # Our layer class has a couple parameters
+        # size - the amount of nodes
+        # next_layer_size - the amount of nodes in the next layer
+        # index - n, where this layer is the n-th in our network
+        # outp_ - whether our layer is an output layer
+        # w = is our layer weighted
+        # b = is our layer biases
         self.values = np.zeros(size).astype(int).tolist()
         self.weights = []
         self.biases = []

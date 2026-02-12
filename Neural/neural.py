@@ -1,7 +1,6 @@
 import random
 import numpy as np
 import ast
-import math
 
 
 """
@@ -12,9 +11,21 @@ A layer contains:
 - " with the biases for the next layer (if not output)
 """
         
+def ign_div(x, y):
+    try:
+        return x/y
+    except:
+        return 0
 
 class Layer:
     def __init__(self, size, next_layer_size=0, index=0, outp_=False, w=True, b=True, r=False):
+        # Our layer class has a couple parameters
+        # size - the amount of nodes
+        # next_layer_size - the amount of nodes in the next layer
+        # index - n, where this layer is the n-th in our network
+        # outp_ - whether our layer is an output layer
+        # w = is our layer weighted
+        # b = is our layer biases
         self.values = np.zeros(size).astype(int).tolist()
         self.weights = []
         self.biases = []
@@ -194,7 +205,6 @@ def b_propagation(network: Network, x, y, learning_rate=0.1):
         network.layers[l].weights -= learning_rate * a.T.dot(d)
         network.layers[l].biases -= learning_rate * d.flatten()
 
-# Example usage
 if __name__ == "__main__":
     n = Network(shape=[2, 3, 6, 1], is_random=True)
     
@@ -206,9 +216,9 @@ if __name__ == "__main__":
         ([1,1],[0])
     ]
     
-    for epoch in range(10000):
+    for epoch in range(100000):
         x, y = random.choice(data)
         b_propagation(n, x, y, learning_rate=0.5)
     
     for x, y in data:
-        print(x, round(f_propagation(n, x)[0]), "expected:", y)
+        print(x, f_propagation(n, x), "expected:", y)
