@@ -51,7 +51,12 @@ class Layer:
 
 class Network:
     def __init__(self, shape=None, weighted=True, is_random=False):
-
+        # Networks are the brain of our system
+        # We give the shape of a network using [a, b, ..., z]
+        # where a is the amount of input nodes, z the amount of output nodes
+        # and b, ..., z-1 the number of the respective middle layers
+        # Weighted defines wether or not to use weights, is_random defines if we want a
+        # random network to send us along the way
         self.layers = []
 
         if shape==None:
@@ -70,10 +75,16 @@ class Network:
             else:
                 raise ValueError("No Shape was given for Network generation && Script was not __main__")
 
-        self.shape = shape
-        self.gen_network(self.shape, is_random=is_random, weighted=weighted)
+        self._shape = shape
+        self.gen_network(self._shape, is_random=is_random, weighted=weighted)
 
+    def get_shape(self):
+        return self._shape
 
+    def set_shape(self, shape):
+        if self._shape != None:
+            raise ValueError("Network already has a shape, shape cannot be modified after first config")
+        self._shape = shape
     def mod_network(self, factor, is_random=False, fine_tune_mode=False):
 
         if fine_tune_mode:
@@ -104,15 +115,15 @@ class Network:
             print(f"Layer {i} weights:\n {self.layers[i].weights}")
             print(f"Layer {i} biases:\n {self.layers[i].biases}")
     
-
+### PERSISTENCY ###
 def save_network(network: Network, filename="network.nn"):
-    data = [network.shape]
+    data = [network.get_shape()]
     
     # print(data)
     with open(filename, 'w') as f:
         f.write(str(data) + "\n")
     with open(filename, 'a') as f:
-        for i in range(len(network.shape)):
+        for i in range(len(network.get_shape())):
             f.write(str(network.layers[i].values.tolist()) + "\n")
             f.write(str(network.layers[i].weights.tolist()) + "\n")
             f.write(str(network.layers[i].biases.tolist()) + "\n")
@@ -126,7 +137,7 @@ def load_network(filename: str):
         if i == 0:
             shape = lines[i][1:-2]
             shape = ast.literal_eval(shape)
-            n.shape = shape
+            n.set_shape(shape)
             continue
 
         if i % 3 == 1:
@@ -144,12 +155,36 @@ def load_network(filename: str):
             n.layers[int((i-3)/3)].biases = ast.literal_eval(lines[i])
     return n
 
-def sigmoid(x):
+def sigmoid(x: float):
     return 1 / (1 + np.exp(-x))
 
 def sigmoid_derivative(z):
     s = 1 / (1 + np.exp(-z))
     return s * (1 - s)
+
+def relu(x):
+    if x < 0:
+        return 0
+    else:
+        return x
+    
+def leaky_relu(x, alpha=0.05):
+    if x < 0:
+        return x*alpha
+    else:
+        return x
+    
+def lin(x): #who's even use this?
+    return x
+
+def gauss(x, s_dev=0.34, med=0):
+    phi = 1/(np.sqrt(2*np.pi*(s_dev**2)))
+    e = np.exp(-((x-med)**2)/(2*s_dev**2))
+    phi *= e
+    return phi
+
+def tanh(x):
+    return 2*sigmoid(2*x) -1
     
 def calc_loss(recieved, expected):
     difference = np.array(recieved) - np.array(expected)
@@ -206,6 +241,7 @@ def b_propagation(network: Network, x, y, learning_rate=0.1):
         network.layers[l].biases -= learning_rate * d.flatten()
 
 if __name__ == "__main__":
+    print("WARNING: program ran as __main__, training on XOR...")
     n = Network(shape=[2, 3, 6, 1], is_random=True)
     
     # Train on XOR
@@ -216,9 +252,9 @@ if __name__ == "__main__":
         ([1,1],[0])
     ]
     
-    for epoch in range(100000):
+    for epoch in range(10000):
         x, y = random.choice(data)
-        b_propagation(n, x, y, learning_rate=0.5)
+        b_propagation(n, x, y, learning_rate=1)
     
     for x, y in data:
         print(x, f_propagation(n, x), "expected:", y)
