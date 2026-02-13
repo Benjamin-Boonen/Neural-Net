@@ -29,6 +29,8 @@ class Layer:
         self._values = np.zeros(size).astype(int).tolist()
         self._weights = []
         self._biases = []
+        self._biased = b
+        self._weighted = w
         self._size = size
         self.index = index
 
@@ -48,12 +50,15 @@ class Layer:
                 if b:
                     self._biases = np.zeros(next_layer_size)
 
+    def get_size(self):
+        return self._size
+    
     def get_values(self):
         return self._values
     
     def set_values(self, values):
         try:
-            np_values = np.ndarray(values)
+            np_values = np.array(values)
         except:
             raise TypeError("Error encountered when parsing values to numpy n-dimensional array.")
         
@@ -67,7 +72,7 @@ class Layer:
     
     def set_weights(self, weights):
         try:
-            np_weights = np.ndarray(weights)
+            np_weights = np.array(weights)
         except:
             raise TypeError("Error encountered when parsing weight list to numpy n-dimensional array.")
         
@@ -81,11 +86,11 @@ class Layer:
     
     def set_biases(self, biases):
         try:
-            np_biases = np.ndarray(biases)
+            np_biases = np.array(biases)
         except:
             raise TypeError("Error encountered when parsing bias list to numpy n-dimensional array.")
         
-        if len(np_biases) != self._size:
+        if len(np_biases) != len(self._biases) and not(len(self._biases) == 0 or self._biases == None):
             raise ValueError("Length of bias list should be equal to the size of the layer.")
         
         self._biases = np_biases
@@ -132,16 +137,16 @@ class Network:
         if fine_tune_mode: # the difference is whether to use mutiplication or addition
             for i in range(len(self.layers)):
                 if is_random:
-                    self.layers[i].set_weights(self.layers[i].get_weights() * (1 + np.random.uniform(-factor, factor, self.layers[i].weights.shape)))
+                    self.layers[i].set_weights(self.layers[i].get_weights() * (1 + np.random.uniform(-factor, factor, self.layers[i].get_weights().shape)))
                 else:
                     self.layers[i].set_weights(self.layers[i].get_weights() * np.full_like(self.layers[i].weights, factor))
 
         else:
             for i in range(len(self.layers)):
                 if is_random:
-                    self.layers[i].set_weights(self.layers[i].get_weights() + (1 + np.random.uniform(-factor, factor, self.layers[i].weights.shape)))
+                    self.layers[i].set_weights(self.layers[i].get_weights() + (1 + np.random.uniform(-factor, factor, self.layers[i].get_weights().shape)))
                 else:
-                    self.layers[i].set_weights(self.layers[i].get_weights() + np.full_like(self.layers[i].weights, factor))
+                    self.layers[i].set_weights(self.layers[i].get_weights() + np.full_like(self.layers[i].get_weights(), factor))
 
     def gen_network(self, shape, is_random=False, weighted=True):
         for i in range(len(shape)):
@@ -167,9 +172,9 @@ def save_network(network: Network, filename="network.nn"):
         f.write(str(data) + "\n")
     with open(filename, 'a') as f:
         for i in range(len(network.get_shape())):
-            f.write(str(network.layers[i].values.tolist()) + "\n")
-            f.write(str(network.layers[i].weights.tolist()) + "\n")
-            f.write(str(network.layers[i].biases.tolist()) + "\n")
+            f.write(str(network.layers[i].get_values().tolist()) + "\n")
+            f.write(str(network.layers[i].get_weights().tolist()) + "\n")
+            f.write(str(network.layers[i].get_biases().tolist()) + "\n")
 
 def load_network(filename: str):
     with open(filename, 'r') as f:
@@ -185,17 +190,17 @@ def load_network(filename: str):
 
         if i % 3 == 1:
             # print("value")
-            value = ast.literal_eval(lines[i])
-            n.layers.append(Layer(len(value), _outp_=True))
-            n.layers[int((i-1)/3)].value = value
+            values = ast.literal_eval(lines[i])
+            n.layers.append(Layer(len(values), _outp_=True))
+            n.layers[int((i-1)/3)].set_values(values)
 
         if i % 3 == 2:
             # print("weight")
-            n.layers[int((i-2)/3)].weights = ast.literal_eval(lines[i])
+            n.layers[int((i-2)/3)].set_weights(ast.literal_eval(lines[i]))
 
         if i % 3 == 0:
             # print("bias")
-            n.layers[int((i-3)/3)].biases = ast.literal_eval(lines[i])
+            n.layers[int((i-3)/3)].set_biases(ast.literal_eval(lines[i]))
     return n
 
 def sigmoid(x: float):
@@ -239,10 +244,10 @@ def calc_cost(recieved, expected):
     return np.sum(loss)
 
 def f_propagation(network: Network, values, function="sigmoid"):
-    if len(values) != len(network.layers[0].values):
-        raise SyntaxError(f"Input length {len(values)} != first layer size {len(network.layers[0].values)}")
+    if len(values) != len(network.layers[0].get_values()):
+        raise SyntaxError(f"Input length {len(values)} != first layer size {len(network.layers[0].get_values())}")
     
-    network.layers[0].values = values
+    network.layers[0].set_values(values)
     
     for i in range(len(network.layers)-1):
         z = np.dot(network.layers[i].get_values(), network.layers[i].get_weights()) + network.layers[i].get_biases()
@@ -271,21 +276,21 @@ def b_propagation(network: Network, x, y, learning_rate=0.1):
     for l in range(len(network.layers)-2, 0, -1):
         z = np.array(network.layers[l].z_values)
         sp = sigmoid_derivative(z)
-        delta = np.dot(deltas[l+1], np.array(network.layers[l].weights).T) * sp # type: ignore
+        delta = np.dot(deltas[l+1], np.array(network.layers[l].get_weights()).T) * sp # type: ignore
         deltas[l] = delta
 
     # Update weights and biases
     for l in range(len(network.layers)-1):
-        a = np.array(network.layers[l].values, ndmin=2)
+        a = np.array(network.layers[l].get_values(), ndmin=2)
         d = np.array(deltas[l+1], ndmin=2)
 
         # Gradient descent update
-        network.layers[l].weights -= learning_rate * a.T.dot(d)
-        network.layers[l].biases -= learning_rate * d.flatten()
+        network.layers[l].set_weights(network.layers[l].get_weights() - learning_rate * a.T.dot(d))
+        network.layers[l].set_biases(network.layers[l].get_biases() - learning_rate * d.flatten())
 
 if __name__ == "__main__":
     print("WARNING: program ran as __main__, training on XOR...")
-    n = Network(shape=[2, 3, 6, 1], is_random=True)
+    n = Network(shape=[2, 4, 4, 1], is_random=True)
     
     # Train on XOR
     data = [
