@@ -18,7 +18,7 @@ def ign_div(x, y):
         return 0
 
 class Layer:
-    def __init__(self, size, next_layer_size=0, index=0, outp_=False, w=True, b=True, r=False):
+    def __init__(self, size, next_layer_size=0, index=0, _outp_=False, w=True, b=True, r=False):
         # Our layer class has a couple parameters
         # size - the amount of nodes
         # next_layer_size - the amount of nodes in the next layer
@@ -26,28 +26,69 @@ class Layer:
         # outp_ - whether our layer is an output layer
         # w = is our layer weighted
         # b = is our layer biases
-        self.values = np.zeros(size).astype(int).tolist()
-        self.weights = []
-        self.biases = []
-        self.size = size
+        self._values = np.zeros(size).astype(int).tolist()
+        self._weights = []
+        self._biases = []
+        self._size = size
         self.index = index
 
-        if not(outp_):
+        if not(_outp_):
             if r:
                 if w:
-                    for i in range(self.size):
-                        self.weights.append([])
+                    for i in range(self._size):
+                        self._weights.append([])
                         for j in range(next_layer_size):
-                            self.weights[i].append((random.random() * 2)-1)
+                            self._weights[i].append((random.random() * 2)-1)
                 if b:
                     for i in range(next_layer_size):
-                        self.biases.append((random.random() * 2)-1)
+                        self._biases.append((random.random() * 2)-1)
             else:
                 if w:
-                    self.weights = np.ones((self.size, next_layer_size))
+                    self._weights = np.ones((self._size, next_layer_size))
                 if b:
-                    self.biases = np.zeros(next_layer_size)
+                    self._biases = np.zeros(next_layer_size)
+
+    def get_values(self):
+        return self._values
+    
+    def set_values(self, values):
+        try:
+            np_values = np.ndarray(values)
+        except:
+            raise TypeError("Error encountered when parsing values to numpy n-dimensional array.")
         
+        if len(np_values) != self._size:
+            raise ValueError("Length of Values should be equal to the size of the layer.")
+        
+        self._values = np_values
+
+    def get_weights(self):
+        return self._weights
+    
+    def set_weights(self, weights):
+        try:
+            np_weights = np.ndarray(weights)
+        except:
+            raise TypeError("Error encountered when parsing weight list to numpy n-dimensional array.")
+        
+        if len(np_weights) != self._size:
+            raise ValueError("Length of weight list should be equal to the size of the layer.")
+        
+        self._weights = np_weights
+
+    def get_biases(self):
+        return self._biases
+    
+    def set_biases(self, biases):
+        try:
+            np_biases = np.ndarray(biases)
+        except:
+            raise TypeError("Error encountered when parsing bias list to numpy n-dimensional array.")
+        
+        if len(np_biases) != self._size:
+            raise ValueError("Length of bias list should be equal to the size of the layer.")
+        
+        self._biases = np_biases
 
 class Network:
     def __init__(self, shape=None, weighted=True, is_random=False):
@@ -85,6 +126,7 @@ class Network:
         if self._shape != None:
             raise ValueError("Network already has a shape, shape cannot be modified after first config")
         self._shape = shape
+
     def mod_network(self, factor, is_random=False, fine_tune_mode=False):
 
         if fine_tune_mode:
@@ -106,15 +148,15 @@ class Network:
                 l = Layer(shape[i], shape[i+1], i, r=is_random, w=weighted, b=weighted)
                 self.layers.append(l)
             else:
-                l = Layer(shape[i], outp_=True, index=i)
+                l = Layer(shape[i], _outp_=True, index=i)
                 self.layers.append(l)
 
-    def show_network(self):
+    def __str__(self):
+        s = ""
         for i in range(len(self.layers)):
-            print(f"Layer {i} values:\n {self.layers[i].values}")
-            print(f"Layer {i} weights:\n {self.layers[i].weights}")
-            print(f"Layer {i} biases:\n {self.layers[i].biases}")
-    
+            s += f"Layer {i} values:\n {self.layers[i].values}, weights:\n {self.layers[i].weights}, Layer {i} biases: \n {self.layers[i].biases}"
+        return s
+
 ### PERSISTENCY ###
 def save_network(network: Network, filename="network.nn"):
     data = [network.get_shape()]
@@ -195,18 +237,18 @@ def calc_cost(recieved, expected):
     loss = calc_loss(recieved, expected)
     return np.sum(loss)
 
-def f_propagation(network: Network, values):
+def f_propagation(network: Network, values, function="sigmoid"):
     if len(values) != len(network.layers[0].values):
         raise SyntaxError(f"Input length {len(values)} != first layer size {len(network.layers[0].values)}")
     
     network.layers[0].values = values
     
     for i in range(len(network.layers)-1):
-        z = np.dot(network.layers[i].values, network.layers[i].weights) + network.layers[i].biases
-        network.layers[i+1].z_values = z  # store pre-activation
-        network.layers[i+1].values = sigmoid(z).tolist()
+        z = np.dot(network.layers[i].get_values(), network.layers[i].get_weights()) + network.layers[i].get_biases()
+        network.layers[i+1].z_values = z  # store pre-activation FIXXXX
+        network.layers[i+1].set_values(sigmoid(z).tolist())
     
-    return network.layers[-1].values
+    return network.layers[-1].get_values()
 
 def b_propagation(network: Network, x, y, learning_rate=0.1):
     # Forward pass
