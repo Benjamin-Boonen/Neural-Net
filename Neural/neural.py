@@ -54,7 +54,7 @@ class Layer:
         return self._size
     
     def get_values(self):
-        return self._values
+        return np.array(self._values)
     
     def set_values(self, values):
         try:
@@ -68,7 +68,7 @@ class Layer:
         self._values = np_values
 
     def get_weights(self):
-        return self._weights
+        return np.array(self._weights)
     
     def set_weights(self, weights):
         try:
@@ -76,13 +76,13 @@ class Layer:
         except:
             raise TypeError("Error encountered when parsing weight list to numpy n-dimensional array.")
         
-        if len(np_weights) != self._size:
+        if len(np_weights) != self._size and self._weights != []:
             raise ValueError("Length of weight list should be equal to the size of the layer.")
         
         self._weights = np_weights
 
     def get_biases(self):
-        return self._biases
+        return np.array(self._biases)
     
     def set_biases(self, biases):
         try:
@@ -90,7 +90,7 @@ class Layer:
         except:
             raise TypeError("Error encountered when parsing bias list to numpy n-dimensional array.")
         
-        if len(np_biases) != len(self._biases) and not(len(self._biases) == 0 or self._biases == None):
+        if len(np_biases) != len(self._biases) and self._biases != []:
             raise ValueError("Length of bias list should be equal to the size of the layer.")
         
         self._biases = np_biases
@@ -128,8 +128,8 @@ class Network:
         return self._shape
 
     def set_shape(self, shape):
-        if self._shape != None:
-            raise ValueError("Network already has a shape, shape cannot be modified after first config")
+        if self._shape != None and self._shape != []:
+            raise ValueError(f"Network already has a shape, shape cannot be modified after first config! \n shape = {self._shape}")
         self._shape = shape
 
     def mod_network(self, factor, is_random=False, fine_tune_mode=False):
@@ -300,9 +300,11 @@ if __name__ == "__main__":
         ([1,1],[0])
     ]
     
-    for epoch in range(10000):
+    for epoch in range(100000):
         x, y = random.choice(data)
         b_propagation(n, x, y, learning_rate=1)
     
     for x, y in data:
         print(x, f_propagation(n, x), "expected:", y)
+
+    save_network(n, "xor.nn")
