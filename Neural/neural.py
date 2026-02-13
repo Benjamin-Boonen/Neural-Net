@@ -129,18 +129,19 @@ class Network:
 
     def mod_network(self, factor, is_random=False, fine_tune_mode=False):
 
-        if fine_tune_mode:
+        if fine_tune_mode: # the difference is whether to use mutiplication or addition
             for i in range(len(self.layers)):
                 if is_random:
-                    self.layers[i].weights *= (1 + np.random.uniform(-factor, factor, self.layers[i].weights.shape))
+                    self.layers[i].set_weights(self.layers[i].get_weights() * (1 + np.random.uniform(-factor, factor, self.layers[i].weights.shape)))
                 else:
-                    self.layers[i].weights *= np.full_like(self.layers[i].weights, factor)
+                    self.layers[i].set_weights(self.layers[i].get_weights() * np.full_like(self.layers[i].weights, factor))
+
         else:
             for i in range(len(self.layers)):
                 if is_random:
-                    self.layers[i].weights += (1 + np.random.uniform(-factor, factor, self.layers[i].weights.shape))
+                    self.layers[i].set_weights(self.layers[i].get_weights() + (1 + np.random.uniform(-factor, factor, self.layers[i].weights.shape)))
                 else:
-                    self.layers[i].weights += np.full_like(self.layers[i].weights, factor)
+                    self.layers[i].set_weights(self.layers[i].get_weights() + np.full_like(self.layers[i].weights, factor))
 
     def gen_network(self, shape, is_random=False, weighted=True):
         for i in range(len(shape)):
@@ -154,7 +155,7 @@ class Network:
     def __str__(self):
         s = ""
         for i in range(len(self.layers)):
-            s += f"Layer {i} values:\n {self.layers[i].values}, weights:\n {self.layers[i].weights}, Layer {i} biases: \n {self.layers[i].biases}"
+            s += f"Layer {i} values:\n {self.layers[i].get_values()}, weights:\n {self.layers[i].get_weights()}, Layer {i} biases: \n {self.layers[i].get_biases()}"
         return s
 
 ### PERSISTENCY ###
@@ -185,7 +186,7 @@ def load_network(filename: str):
         if i % 3 == 1:
             # print("value")
             value = ast.literal_eval(lines[i])
-            n.layers.append(Layer(len(value), outp_=True))
+            n.layers.append(Layer(len(value), _outp_=True))
             n.layers[int((i-1)/3)].value = value
 
         if i % 3 == 2:
@@ -270,7 +271,7 @@ def b_propagation(network: Network, x, y, learning_rate=0.1):
     for l in range(len(network.layers)-2, 0, -1):
         z = np.array(network.layers[l].z_values)
         sp = sigmoid_derivative(z)
-        delta = np.dot(deltas[l+1], np.array(network.layers[l].weights).T) * sp
+        delta = np.dot(deltas[l+1], np.array(network.layers[l].weights).T) * sp # type: ignore
         deltas[l] = delta
 
     # Update weights and biases
