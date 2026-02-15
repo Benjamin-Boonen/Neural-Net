@@ -160,7 +160,7 @@ class Network:
     def __str__(self):
         s = ""
         for i in range(len(self.layers)):
-            s += f"Layer {i} values:\n {self.layers[i].get_values()}, weights:\n {self.layers[i].get_weights()}, Layer {i} biases: \n {self.layers[i].get_biases()}"
+            s += f"Layer {i} values:\n {self.layers[i].get_values()}, weights:\n {self.layers[i].get_weights()}, Layer {i} biases: \n {self.layers[i].get_biases()} \n"
         return s
 
 ### PERSISTENCY ###
