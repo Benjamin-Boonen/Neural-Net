@@ -216,13 +216,13 @@ def relu(x):
     else:
         return x
     
-def leaky_relu(x, alpha=0.05):
+def leaky_relu(x, alpha=0.05): # EWWW
     if x < 0:
         return x*alpha
     else:
         return x
     
-def lin(x): #who's even use this?
+def lin(x): # who even uses this?
     return x
 
 def gauss(x, s_dev=0.34, med=0):
