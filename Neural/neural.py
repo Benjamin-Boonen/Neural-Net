@@ -307,4 +307,4 @@ if __name__ == "__main__":
     for x, y in data:
         print(x, f_propagation(n, x), "expected:", y)
 
-    save_network(n, "xor.nn")
+    #save_network(n, "xor.nn")
