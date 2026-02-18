@@ -44,5 +44,3 @@ for i in range(1000000):
 
 for i in test_images:
     print(test_images[i], f_propagation(n, test_images[i]), "expected value:", test_labels[i])
-
-save_network(n, "mnist.nn")
