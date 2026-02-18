@@ -35,13 +35,13 @@ test_images = load_images("Neural/MNIST Dataset/mnist/t10k-images.idx3-ubyte")
 test_labels = load_labels("Neural/MNIST Dataset/mnist/t10k-labels.idx1-ubyte")
 
 #images are 28x28, 60k training and 10k testing images
-n = Network(shape = [784, 40, 30, 25, 20, 10], is_random = True)
+n = Network(shape = [784, 30, 25, 25, 20, 10], is_random = True)
 
 print("Starting training...")
 
-j = 0;
-amt = 1000000
-#Change value!!!
+amt = 1_000_000
+j = 0
+
 for i in tqdm(range(amt)):
     x = random.randint(0, len(train_images)-1)
     b_propagation(n, train_images[x], train_labels[x], learning_rate = 1)
