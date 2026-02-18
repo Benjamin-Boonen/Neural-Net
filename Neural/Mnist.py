@@ -66,4 +66,4 @@ for i in range(amt_):
 efficiency = (efficiency/amt_)*100
 print(f"Network ran at an efficiency of {round(efficiency, 4)}%.")
 
-n = load_network("mnist.nn")
+save_network(n, "xor.nn")
