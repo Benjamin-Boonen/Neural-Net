@@ -293,9 +293,9 @@ def f_propagation(network: Network, values, function=SIGMOID):
     
     return network.layers[-1].get_values()
 
-def b_propagation(network: Network, x, y, learning_rate=0.1):
+def b_propagation(network: Network, x, y, learning_rate=0.1, function=SIGMOID):
     # Forward pass
-    output = f_propagation(network, x)
+    output = f_propagation(network, x, function=function)
 
     # Convert to np arrays for math
     y = np.array(y)

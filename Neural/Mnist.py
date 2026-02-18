@@ -39,8 +39,7 @@ n = Network(shape = [784, 40, 30, 25, 20, 10], is_random = True)
 
 print("Starting training...")
 
-j = 0;
-amt = 1000000
+amt = 100000
 #Change value!!!
 for i in tqdm(range(amt)):
     x = random.randint(0, len(train_images)-1)
