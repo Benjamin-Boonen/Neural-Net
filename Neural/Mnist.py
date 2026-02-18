@@ -40,27 +40,31 @@ n = Network(shape = [784, 5, 3, 3, 5, 10], is_random = True)
 
 print("Starting training...")
 
-j = 0;
-checkUp = 50000
+#Change how much training you want to do
+trainCycle = 100_000_000
+checkUp = trainCycle/25
 
-#Change value!!!
-for i in range(1000000):
+j = 0
+
+for i in range(trainCycle):
     x = random.randint(0, len(train_images)-1)
     b_propagation(n, train_images[x], train_labels[x], learning_rate = 1)
-    j += 1
-    if j == checkUp or j == 1000000:
+
+    #progress tracking
+    if j == checkUp or j == trainCycle:
         j = 0
-        checkUp = np.random.randint(35000, 75000)
-        print("training:", math.floor((i/10000)), "%")
+        print("training:", math.floor((i/trainCycle)*100), "%")
+    j += 1
+
 
 for i in range(len(test_images) // 500):
     output = f_propagation(n, test_images[i])
 
     maxValue = 0
     maxIndex = 0
-    for j in range(len(output)):
-        if output[j] >= maxValue:
-            maxValue = output[j]
-            maxIndex = j
+    for k in range(len(output)):
+        if output[k] >= maxValue:
+            maxValue = output[k]
+            maxIndex = k
         
     print("Output:", maxIndex, "| expected value:", test_labels[i])
