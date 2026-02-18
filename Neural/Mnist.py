@@ -40,7 +40,12 @@ n = Network(shape = [784, 20, 20, 20, 10], is_random = True)
 print("Starting training...")
 
 #Adjust for amt of training
+<<<<<<< Updated upstream
 amt = 100_000
+=======
+amt = 100_000_000
+j = 0
+>>>>>>> Stashed changes
 
 #Get random image, and back propagate for improvement
 for i in tqdm(range(amt)):
@@ -51,6 +56,7 @@ for i in tqdm(range(amt)):
 
 
 #Test the network on test images
+<<<<<<< Updated upstream
 efficiency = 0
 amt_ = 1000
 for i in range(amt_):
@@ -65,3 +71,18 @@ for i in range(amt_):
 
 efficiency = (efficiency/amt_)*100
 print(f"Network ran at an efficiency of {round(efficiency, 4)}%.")
+=======
+for i in range(len(test_images) // 200):
+    output = f_propagation(n, test_images[i])
+
+    maxValue = 0
+    maxIndex = 0
+    for k in range(len(output)):    #Look for largest output node
+        if output[k] >= maxValue:
+            maxValue = output[k]
+            maxIndex = k
+        
+    print("Output:", maxIndex, "| expected value:", test_labels[i])
+
+n = load_network("mnist.nn")
+>>>>>>> Stashed changes
