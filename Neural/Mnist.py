@@ -66,16 +66,4 @@ for i in range(amt_):
 efficiency = (efficiency/amt_)*100
 print(f"Network ran at an efficiency of {round(efficiency, 4)}%.")
 
-for i in range(len(test_images) // 200):
-    output = f_propagation(n, test_images[i])
-
-    maxValue = 0
-    maxIndex = 0
-    for k in range(len(output)):    #Look for largest output node
-        if output[k] >= maxValue:
-            maxValue = output[k]
-            maxIndex = k
-        
-    print("Output:", maxIndex, "| expected value:", test_labels[i])
-
 n = load_network("mnist.nn")
