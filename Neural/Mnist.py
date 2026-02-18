@@ -35,20 +35,32 @@ train_labels = load_labels("Neural/MNIST Dataset/mnist/train-labels.idx1-ubyte")
 test_images = load_images("Neural/MNIST Dataset/mnist/t10k-images.idx3-ubyte")
 test_labels = load_labels("Neural/MNIST Dataset/mnist/t10k-labels.idx1-ubyte")
 
+#images are 28x28, 60k training and 10k testing images
 n = Network(shape = [784, 5, 3, 3, 5, 10], is_random = True)
 
 print("Starting training...")
 
 j = 0;
 checkUp = 50000
+
+#Change value!!!
 for i in range(1000000):
     x = random.randint(0, len(train_images)-1)
     b_propagation(n, train_images[x], train_labels[x], learning_rate = 1)
     j += 1
-    if j == checkUp:
+    if j == checkUp or j == 1000000:
         j = 0
-        checkUp = random.randint(45000, 60000)
+        checkUp = np.random.randint(35000, 75000)
         print("training:", math.floor((i/10000)), "%")
 
-for i in range(len(test_images)/5000):
-    print(test_images[i], f_propagation(n, test_images[i]), "expected value:", test_labels[i])
+for i in range(len(test_images) // 500):
+    output = f_propagation(n, test_images[i])
+
+    maxValue = 0
+    maxIndex = 0
+    for j in range(len(output)):
+        if output[j] >= maxValue:
+            maxValue = output[j]
+            maxIndex = j
+        
+    print("Output:", maxIndex, "| expected value:", test_labels[i])
