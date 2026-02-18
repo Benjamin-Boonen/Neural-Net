@@ -40,8 +40,7 @@ n = Network(shape = [784, 20, 20, 20, 10], is_random = True)
 print("Starting training...")
 
 #Adjust for amt of training
-amt = 1_000_000
-j = 0
+amt = 100_000
 
 #Get random image, and back propagate for improvement
 for i in tqdm(range(amt)):
@@ -52,15 +51,17 @@ for i in tqdm(range(amt)):
 
 
 #Test the network on test images
-for i in range(len(test_images) // 500):
-    output = f_propagation(n, test_images[i])
+efficiency = 0
+amt_ = 1000
+for i in range(amt_):
+    x = random.randint(0, len(test_images)-1)
+    output = f_propagation(n, test_images[x]).tolist()
 
-    maxValue = 0
-    maxIndex = 0
-    for k in range(len(output)):    #Look for largest output node
-        if output[k] >= maxValue:
-            maxValue = output[k]
-            maxIndex = k
-        
-    print("Output:", maxIndex, "| expected value:", test_labels[i])
-    print(output)
+    ind = output.index(np.max(output))
+
+    print("Output:", ind, "| expected value:", test_labels[x])
+    if ind == test_labels[x]:
+        efficiency += 1
+
+efficiency = (efficiency/amt_)*100
+print(f"Network ran at an efficiency of {round(efficiency, 4)}%.")
