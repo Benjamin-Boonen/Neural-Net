@@ -28,11 +28,11 @@ def one_hot(label, size=10):
 
 #Actually load the imgages and labels
 #train images are for training and testing for the final test (obv)
-train_images = load_images("mnist/train-images.idx3-ubyte")
-train_labels = load_labels("mnist/train-labels.idx1-ubyte")
+train_images = load_images("Neural/MNIST Dataset/mnist/train-images.idx3-ubyte")
+train_labels = load_labels("Neural/MNIST Dataset/mnist/train-labels.idx1-ubyte")
 
-test_images = load_images("mnist/t10k-images.idx3-ubyte")
-test_labels = load_labels("mnist/t10k-labels.idx1-ubyte")
+test_images = load_images("Neural/MNIST Dataset/mnist/t10k-images.idx3-ubyte")
+test_labels = load_labels("Neural/MNIST Dataset/mnist/t10k-labels.idx1-ubyte")
 
 n = Network(shape = [784, 5, 3, 3, 5, 10], is_random = True)
 
