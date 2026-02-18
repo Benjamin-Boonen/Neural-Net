@@ -36,7 +36,7 @@ test_images = load_images("Neural/MNIST Dataset/mnist/t10k-images.idx3-ubyte")
 test_labels = load_labels("Neural/MNIST Dataset/mnist/t10k-labels.idx1-ubyte")
 
 #images are 28x28, 60k training and 10k testing images
-n = Network(shape = [784, 5, 3, 3, 5, 10], is_random = True)
+n = Network(shape = [784, 40, 30, 25, 20, 10], is_random = True)
 
 print("Starting training...")
 
