@@ -17,6 +17,13 @@ def ign_div(x, y):
     except:
         return 0
 
+SIGMOID = "sigmoid"
+RELU = "relu"
+LEAKYRELU = "leaky relu"
+LINEAR = "linear"
+TANH = "tanh"
+GAUSS = "gauss"
+
 class Layer:
     def __init__(self, size, next_layer_size=0, index=0, _outp_=False, w=True, b=True, r=False):
         # Our layer class has a couple parameters
@@ -210,29 +217,45 @@ def sigmoid_derivative(z):
     s = 1 / (1 + np.exp(-z))
     return s * (1 - s)
 
-def relu(x):
-    if x < 0:
-        return 0
-    else:
-        return x
+def relu(x: float):
+    xs = np.array(x)
+    out = []
+    for n in xs:
+        if x < 0:
+            out.append(0)
+        else:
+            out.append(n)
+    return np.array(out)
     
-def leaky_relu(x, alpha=0.05): # EWWW
-    if x < 0:
-        return x*alpha
-    else:
-        return x
+def leaky_relu(x: float, alpha=0.05): # EWWW
+    xs = np.array(x)
+    out = []
+    for n in xs:
+        if n < 0:
+            out.append(n*alpha)
+        else:
+            out.append(x)
+    return np.array(out)
     
-def lin(x): # who even uses this?
-    return x
+def lin(x: float): # who even uses this?
+    return np.array(x)
 
-def gauss(x, s_dev=0.34, med=0):
-    phi = 1/(np.sqrt(2*np.pi*(s_dev**2)))
-    e = np.exp(-((x-med)**2)/(2*s_dev**2))
-    phi *= e
-    return phi
+def gauss(x: float, s_dev=0.34, med=0):
+    xs = np.array(x)
+    out = []
+    for n in xs:
+        phi = 1/(np.sqrt(2*np.pi*(s_dev**2)))
+        e = np.exp(-((n-med)**2)/(2*s_dev**2))
+        phi *= e
+        out.append(phi)
+    return np.array(out)
 
-def tanh(x):
-    return 2*sigmoid(2*x) -1
+def tanh(x: float):
+    xs = np.array(x)
+    out = []
+    for n in xs:
+        out.append(2*sigmoid(2*n) -1)
+    return np.array(out)
     
 def calc_loss(recieved, expected):
     difference = np.array(recieved) - np.array(expected)
@@ -243,7 +266,7 @@ def calc_cost(recieved, expected):
     loss = calc_loss(recieved, expected)
     return np.sum(loss)
 
-def f_propagation(network: Network, values, function="sigmoid"):
+def f_propagation(network: Network, values, function=SIGMOID):
     if len(values) != len(network.layers[0].get_values()):
         raise SyntaxError(f"Input length {len(values)} != first layer size {len(network.layers[0].get_values())}")
     
@@ -252,7 +275,21 @@ def f_propagation(network: Network, values, function="sigmoid"):
     for i in range(len(network.layers)-1):
         z = np.dot(network.layers[i].get_values(), network.layers[i].get_weights()) + network.layers[i].get_biases()
         network.layers[i+1].z_values = z  # store pre-activation FIXXXX
-        network.layers[i+1].set_values(sigmoid(z).tolist())
+        if function == SIGMOID:
+            network.layers[i+1].set_values(sigmoid(z).tolist())
+        elif function == RELU:
+            network.layers[i+1].set_values(relu(z).tolist())
+        elif function == LEAKYRELU:
+            network.layers[i+1].set_values(leaky_relu(z).tolist())
+        elif function == LINEAR:
+            network.layers[i+1].set_values(lin(z).tolist())
+        elif function == GAUSS:
+            network.layers[i+1].set_values(gauss(z).tolist())
+        elif function == TANH:
+            network.layers[i+1].set_values(tanh(z).tolist())
+        else:
+            msg = f"Unrecognised activation function: {function}."
+            raise ValueError(msg)
     
     return network.layers[-1].get_values()
 
@@ -307,4 +344,4 @@ if __name__ == "__main__":
     for x, y in data:
         print(x, f_propagation(n, x), "expected:", y)
 
-    save_network(n, "xor.nn")
+    #save_network(n, "xor.nn")
