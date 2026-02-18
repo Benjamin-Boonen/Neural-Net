@@ -4,6 +4,7 @@ from neural import *
 import numpy as np
 import struct
 import random
+import math
 
 #Load functions
 #stole this part, no idea how it works
@@ -38,9 +39,16 @@ n = Network(shape = [784, 5, 3, 3, 5, 10], is_random = True)
 
 print("Starting training...")
 
+j = 0;
 for i in range(1000000):
-    x = random.randint(1, len(train_images))
+    x = random.randint(0, len(train_images)-1)
     b_propagation(n, train_images[x], train_labels[x], learning_rate = 1)
+    j += 1
+    if j == 500000:
+        j = 0
+        print("training:", math.ceil((i/10000)), "%")
 
-for i in test_images:
+
+
+for i in range(len(test_images)):
     print(test_images[i], f_propagation(n, test_images[i]), "expected value:", test_labels[i])
