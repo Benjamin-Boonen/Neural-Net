@@ -40,21 +40,20 @@ n = Network(shape = [784, 20, 20, 20, 20, 10], is_random = True)
 print("Starting training...")
 
 j = 0;
-checkUp = 50000
-amt = 100000
+amt = 1000000
 #Change value!!!
 for i in tqdm(range(amt)):
     x = random.randint(0, len(train_images)-1)
-    b_propagation(n, train_images[x], train_labels[x], learning_rate=1)
+    b_propagation(n, train_images[x], train_labels[x], learning_rate = 1)
 
 for i in range(len(test_images) // 500):
     output = f_propagation(n, test_images[i])
 
     maxValue = 0
     maxIndex = 0
-    for j in range(len(output)):
-        if output[j] >= maxValue:
-            maxValue = output[j]
-            maxIndex = j
+    for k in range(len(output)):
+        if output[k] >= maxValue:
+            maxValue = output[k]
+            maxIndex = k
         
     print("Output:", maxIndex, "| expected value:", test_labels[i])
