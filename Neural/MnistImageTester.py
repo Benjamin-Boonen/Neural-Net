@@ -26,4 +26,4 @@ train_labels = load_labels("Neural/MNIST Dataset/mnist/train-labels.idx1-ubyte")
 test_images = load_images("Neural/MNIST Dataset/mnist/t10k-images.idx3-ubyte")
 test_labels = load_labels("Neural/MNIST Dataset/mnist/t10k-labels.idx1-ubyte")
 
-print(train_labels[0])
+print(train_images[5])

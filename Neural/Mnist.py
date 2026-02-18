@@ -39,21 +39,25 @@ n = Network(shape = [784, 30, 25, 25, 20, 10], is_random = True)
 
 print("Starting training...")
 
+#Adjust for amt of training
 amt = 1_000_000
 j = 0
 
+#Get random image, and back propagate for improvement
 for i in tqdm(range(amt)):
     x = random.randint(0, len(train_images)-1)
     b_propagation(n, train_images[x], train_labels[x], learning_rate = 1)
 
+#Test the network on test images
 for i in range(len(test_images) // 500):
     output = f_propagation(n, test_images[i])
 
     maxValue = 0
     maxIndex = 0
-    for k in range(len(output)):
+    for k in range(len(output)):    #Look for largest output node
         if output[k] >= maxValue:
             maxValue = output[k]
             maxIndex = k
         
     print("Output:", maxIndex, "| expected value:", test_labels[i])
+    print(output)
