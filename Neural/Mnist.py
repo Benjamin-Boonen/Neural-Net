@@ -40,15 +40,15 @@ n = Network(shape = [784, 5, 3, 3, 5, 10], is_random = True)
 print("Starting training...")
 
 j = 0;
+checkUp = 50000
 for i in range(1000000):
     x = random.randint(0, len(train_images)-1)
     b_propagation(n, train_images[x], train_labels[x], learning_rate = 1)
     j += 1
-    if j == 500000:
+    if j == checkUp:
         j = 0
-        print("training:", math.ceil((i/10000)), "%")
+        checkUp = random.randint(45000, 60000)
+        print("training:", math.floor((i/10000)), "%")
 
-
-
-for i in range(len(test_images)):
+for i in range(len(test_images)/5000):
     print(test_images[i], f_propagation(n, test_images[i]), "expected value:", test_labels[i])
