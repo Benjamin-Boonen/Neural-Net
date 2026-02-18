@@ -35,7 +35,7 @@ test_images = load_images("Neural/MNIST Dataset/mnist/t10k-images.idx3-ubyte")
 test_labels = load_labels("Neural/MNIST Dataset/mnist/t10k-labels.idx1-ubyte")
 
 #images are 28x28, 60k training and 10k testing images
-n = Network(shape = [784, 30, 25, 25, 20, 10], is_random = True)
+n = Network(shape = [784, 20, 20, 20, 10], is_random = True)
 
 print("Starting training...")
 
@@ -46,7 +46,10 @@ j = 0
 #Get random image, and back propagate for improvement
 for i in tqdm(range(amt)):
     x = random.randint(0, len(train_images)-1)
-    b_propagation(n, train_images[x], train_labels[x], learning_rate = 1)
+    exp = np.zeros(10)
+    exp[train_labels[x]] = 1
+    b_propagation(n, train_images[x], exp, learning_rate = 0.1)
+
 
 #Test the network on test images
 for i in range(len(test_images) // 500):
