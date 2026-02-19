@@ -59,7 +59,7 @@ for i in range(amt_):
 
     ind = output.index(np.max(output))
 
-    print("Output:", ind, "| expected value:", test_labels[x])
+    print("Output:", ind, "| expected value:", test_labels[x], "| certainty:", np.max(output))
     if ind == test_labels[x]:
         efficiency += 1
 
