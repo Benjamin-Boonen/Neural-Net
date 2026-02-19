@@ -103,7 +103,7 @@ class Layer:
         self._biases = np_biases
 
 class Network:
-    def __init__(self, shape=None, weighted=True, is_random=False):
+    def __init__(self, shape=None, weighted=True, is_random=False, activation=SIGMOID):
         # Networks are the brain of our system
         # We give the shape of a network using [a, b, ..., z]
         # where a is the amount of input nodes, z the amount of output nodes
@@ -111,6 +111,7 @@ class Network:
         # Weighted defines wether or not to use weights, is_random defines if we want a
         # random network to send us along the way
         self.layers = []
+        self.activation = activation
 
         if shape==None:
             if __name__ == "__main__":
@@ -163,6 +164,12 @@ class Network:
             else:
                 l = Layer(shape[i], _outp_=True, index=i)
                 self.layers.append(l)
+
+    def f_propagation(self, values):
+        return f_propagation(self, values, function=self.activation)
+    
+    def b_propagation(self, values, expected, learning_rate=0.1):
+        return b_propagation(self, values, expected, learning_rate, function=self.activation)
 
     def __str__(self):
         s = ""
@@ -293,12 +300,12 @@ def f_propagation(network: Network, values, function=SIGMOID):
     
     return network.layers[-1].get_values()
 
-def b_propagation(network: Network, x, y, learning_rate=0.1, function=SIGMOID):
+def b_propagation(network: Network, values, expected, learning_rate=0.1, function=SIGMOID):
     # Forward pass
-    output = f_propagation(network, x, function=function)
+    output = f_propagation(network, values, function=function)
 
     # Convert to np arrays for math
-    y = np.array(y)
+    y = np.array(expected)
     a_last = np.array(output)
     z_last = np.array(network.layers[-1].z_values)
 

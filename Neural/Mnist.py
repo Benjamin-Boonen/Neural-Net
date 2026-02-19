@@ -40,7 +40,7 @@ n = Network(shape = [784, 20, 20, 20, 10], is_random = True)
 print("Starting training...")
 
 #Adjust for amt of training
-amt = 1_000_000
+amt = 40_000
 
 #Get random image, and back propagate for improvement
 for i in tqdm(range(amt)):
@@ -66,4 +66,4 @@ for i in range(amt_):
 efficiency = (efficiency/amt_)*100
 print(f"Network ran at an efficiency of {round(efficiency, 4)}%.")
 
-save_network(n, "mnist.nn")
+save_network(n, f"mnist_{amt/1000}k.nn")
