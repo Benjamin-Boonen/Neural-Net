@@ -10,6 +10,9 @@ canvas = Canvas(win, width=28*scale, height=28*scale, bg="white")
 
 grid = np.zeros(784)
 
+model = "mnist_70k.nn"
+n = load_network(f'networks/{model}')
+
 def gridrender(grid=grid, canvas=canvas):
     canvas.delete("all")
     for e in range(len(grid)):
@@ -28,8 +31,13 @@ def rando(grid=grid):
         grid[e] = np.random.rand()
     gridrender()
 
+def clear():
+    for e in range(len(grid)):
+        grid[e] = 0
+    gridrender()
+
 mousedown = False
-drawradius = 300
+drawradius = 400
 sensitivity = 0.8
 
 def key(event):
@@ -68,6 +76,9 @@ def moved(event):
         sir = squares_in_radius(event.x, event.y)
         color_squares(sir)
         gridrender()
+        guess = f_propagation(n, grid)
+        guess = guess.tolist().index(np.max(guess))
+        print(guess)
 
 
 #canvas.bind("<Key>", key)
@@ -78,4 +89,6 @@ canvas.bind('<Motion>', moved)
 
 rand_button = Button(win, text="randomise", command=rando)
 rand_button.pack()
+clear_button = Button(win, text="clear", command=clear)
+clear_button.pack()
 win.mainloop()
