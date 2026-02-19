@@ -40,7 +40,7 @@ n = Network(shape = [784, 20, 20, 20, 10], is_random = True, activation=SIGMOID)
 print("Starting training...")
 
 #Adjust for amt of training
-amt = 40_000
+amt = 30_000
 
 #Get random image, and back propagate for improvement
 for i in tqdm(range(amt)):
