@@ -27,6 +27,32 @@ def rando(grid=grid):
         grid[e] = np.random.rand()
     gridrender()
 
+mousedown = False
+def key(event):
+    print("pressed")
+    repr(event.char)
+
+def click_down(event):
+    global mousedown
+    print("clicked at", event.x, event.y)
+    mousedown = True
+
+def click_up(event):
+    global mousedown
+    print("released at", event.x, event.y)
+    mousedown = False
+
+def moved(event):
+    global mousedown
+    print("moved to:", event.x, event.y, mousedown)
+
+
+#canvas.bind("<Key>", key)
+canvas.bind("<ButtonPress-1>", click_down)
+canvas.bind("<ButtonRelease-1>", click_up)
+canvas.bind('<Motion>', moved)
+
+
 rand_button = Button(win, text="randomise", command=rando)
 rand_button.pack()
 win.mainloop()
