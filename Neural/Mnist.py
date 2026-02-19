@@ -71,4 +71,4 @@ efficiency = (efficiency/amt_)*100
 print(f"Network ran at an efficiency of {round(efficiency, 4)}%.")
 
 # save_network(n, f"networks/mnist_{amt/1000}k.nn")
-#save_network(n, f"networks/mnist_1m.nn")
+# save_network(n, f"networks/mnist_1m.nn")

@@ -1,7 +1,7 @@
 from tkinter import *
 from neural import *
 import numpy as np
-scale = 18
+scale = 20
 
 win = Tk()
 win.title("MNIST Test")
@@ -10,9 +10,8 @@ canvas = Canvas(win, width=28*scale, height=28*scale, bg="white")
 
 grid = np.zeros(784)
 
-model = "mnist_70k.nn"
+model = "mnist_1m.nn"
 n = load_network(f'networks/{model}')
-
 def gridrender(grid=grid, canvas=canvas):
     canvas.delete("all")
     for e in range(len(grid)):
@@ -25,7 +24,7 @@ def gridrender(grid=grid, canvas=canvas):
 
 canvas.pack()
 gridrender()
-
+guess = 0
 def rando(grid=grid):
     for e in range(len(grid)):
         grid[e] = np.random.rand()
@@ -37,8 +36,12 @@ def clear():
     gridrender()
 
 mousedown = False
-drawradius = 400
-sensitivity = 0.8
+drawradius = 500
+sensitivity = 1
+text_var = StringVar()
+text_var.set(f"Guess: {guess}")
+est = Label(win, textvariable=text_var, height=3, width=30, bg="white", font=("Helvetica", 16, "bold"))
+est.pack()
 
 def key(event):
     #print("pressed")
@@ -54,32 +57,30 @@ def click_up(event):
     #print("released at", event.x, event.y)
     mousedown = False
 
-def squares_in_radius(x, y, radius=drawradius):
-    ind = []
+def color_squares_in_radius(x, y, radius=drawradius):
     for e in range(len(grid)):
         x_square = (e % 28)*scale + scale//2
         y_square = (e // 28)*scale + scale//2
 
         if (x_square-x)**2 + (y_square-y)**2 <= drawradius:
-            ind.append(e)
-    return ind
+            d = np.sqrt((x_square-x)**2 + (y_square-y)**2)
+            amt = -((d/drawradius)**2)+1
+            color_square(e, amt=amt)
 
-def color_squares(squares, grid=grid, sensitivity=sensitivity):
-    for s in squares:
-        grid[s] = max(min(1, grid[s] + sensitivity), 0)
-        #print(grid[s], "color")
+def color_square(square, grid=grid, amt=1):
+    grid[square] = max(min(1, grid[square] + amt), 0)
+    #print(grid[s], "color")
 
 def moved(event):
     global mousedown
+    global guess
     #print("moved to:", event.x, event.y, mousedown)
     if mousedown:
-        sir = squares_in_radius(event.x, event.y)
-        color_squares(sir)
+        color_squares_in_radius(event.x, event.y)
         gridrender()
         guess = f_propagation(n, grid)
         guess = guess.tolist().index(np.max(guess))
-        print(guess)
-
+        text_var.set(f"Guess: {guess}")
 
 #canvas.bind("<Key>", key)
 canvas.bind("<ButtonPress-1>", click_down)
@@ -91,4 +92,5 @@ rand_button = Button(win, text="randomise", command=rando)
 rand_button.pack()
 clear_button = Button(win, text="clear", command=clear)
 clear_button.pack()
+
 win.mainloop()
