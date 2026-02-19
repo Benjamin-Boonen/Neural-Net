@@ -35,7 +35,7 @@ test_images = load_images("Neural/MNIST Dataset/mnist/t10k-images.idx3-ubyte")
 test_labels = load_labels("Neural/MNIST Dataset/mnist/t10k-labels.idx1-ubyte")
 
 #images are 28x28, 60k training and 10k testing images
-n = Network(shape = [784, 20, 20, 20, 10], is_random = True)
+n = Network(shape = [784, 20, 20, 20, 10], is_random = True, activation=SIGMOID)
 
 print("Starting training...")
 
@@ -47,7 +47,7 @@ for i in tqdm(range(amt)):
     x = random.randint(0, len(train_images)-1)
     exp = np.zeros(10)
     exp[train_labels[x]] = 1
-    b_propagation(n, train_images[x], exp, learning_rate = 0.1)
+    b_propagation(n, train_images[x], exp, learning_rate = 1)
 
 
 #Test the network on test images
@@ -58,7 +58,11 @@ for i in range(amt_):
     output = f_propagation(n, test_images[x]).tolist()
 
     ind = output.index(np.max(output))
-
+    certainty = np.max(output)
+    if certainty < 0.5:
+        print("WARNING: UNCERTAIN!!")
+    elif ind != test_labels[x]:
+        print("WARNING: CERTAIN BUT WRONG!!")
     print("Output:", ind, "| expected value:", test_labels[x], "| certainty:", np.max(output))
     if ind == test_labels[x]:
         efficiency += 1
@@ -66,4 +70,4 @@ for i in range(amt_):
 efficiency = (efficiency/amt_)*100
 print(f"Network ran at an efficiency of {round(efficiency, 4)}%.")
 
-save_network(n, f"networks/mnist_{amt/1000}k.nn")
+#save_network(n, f"networks/mnist_{amt/1000}k.nn")
