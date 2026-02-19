@@ -11,7 +11,7 @@ canvas = Canvas(win, width=28*scale, height=28*scale, bg="white")
 
 grid = np.zeros(784)
 
-model = "mnist_1m.nn"
+model = "mnist_60k.nn"
 n = load_network(f'networks/{model}')
 
 def load_images(filename):
@@ -46,6 +46,9 @@ text_var.set(f"Guess: {guess}")
 est = Label(win, textvariable=text_var, height=3, width=30, bg="white", font=("Helvetica", 16, "bold"))
 est.pack()
 
+mousedown = False
+drawradius = 500
+
 def gridrender(grid=grid, canvas=canvas):
     global guess
     canvas.delete("all")
@@ -56,9 +59,12 @@ def gridrender(grid=grid, canvas=canvas):
         color = "grey"+str(int(100-color))
         #print(f"square {e} has value {color}")
         square = canvas.create_rectangle(collumn*scale, row*scale, (collumn+1)*scale, (row+1)*scale, fill=color)
-        guess = f_propagation(n, grid)
-        guess = guess.tolist().index(np.max(guess))
-        text_var.set(f"Guess: {guess}")
+        if not mousedown:
+            guess = f_propagation(n, grid)
+            guess = guess.tolist().index(np.max(guess))
+            text_var.set(f"Guess: {guess}")
+        else:
+            text_var.set(f"Waiting for mouse_up...")
 
 def get_image(grid=grid):
     x = random.randint(0, len(train_images)-1)
@@ -79,9 +85,6 @@ def clear():
         grid[e] = 0
     gridrender()
 
-mousedown = False
-drawradius = 500
-
 def key(event):
     #print("pressed")
     repr(event.char)
@@ -95,6 +98,7 @@ def click_up(event):
     global mousedown
     #print("released at", event.x, event.y)
     mousedown = False
+    gridrender()
 
 def color_squares_in_radius(x, y, radius=drawradius):
     for e in range(len(grid)):
