@@ -1,6 +1,7 @@
 from tkinter import *
 from neural import *
 import numpy as np
+import struct
 scale = 20
 
 win = Tk()
@@ -12,7 +13,41 @@ grid = np.zeros(784)
 
 model = "mnist_1m.nn"
 n = load_network(f'networks/{model}')
+
+def load_images(filename):
+    with open(filename, 'rb') as f:
+        magic, num, rows, cols = struct.unpack(">IIII", f.read(16))
+        images = np.frombuffer(f.read(), dtype=np.uint8)
+        images = images.reshape(num, rows * cols)
+        images = images / 255.0  # normalize 0-1
+        return images
+    
+def load_labels(filename):
+    with open(filename, 'rb') as f:
+        magic, num = struct.unpack(">II", f.read(8))
+        labels = np.frombuffer(f.read(), dtype=np.uint8)
+        return labels
+
+def one_hot(label, size=10):
+    vec = np.zeros(size)
+    vec[label] = 1
+    return vec
+
+guess = 0
+
+#Actually load the imgages and labels
+#train images are for training and testing for the final test (obv)
+train_images = load_images("Neural/MNIST Dataset/mnist/train-images.idx3-ubyte")
+train_labels = load_labels("Neural/MNIST Dataset/mnist/train-labels.idx1-ubyte")
+
+sensitivity = 1
+text_var = StringVar()
+text_var.set(f"Guess: {guess}")
+est = Label(win, textvariable=text_var, height=3, width=30, bg="white", font=("Helvetica", 16, "bold"))
+est.pack()
+
 def gridrender(grid=grid, canvas=canvas):
+    global guess
     canvas.delete("all")
     for e in range(len(grid)):
         collumn = e % 28
@@ -21,10 +56,19 @@ def gridrender(grid=grid, canvas=canvas):
         color = "grey"+str(int(100-color))
         #print(f"square {e} has value {color}")
         square = canvas.create_rectangle(collumn*scale, row*scale, (collumn+1)*scale, (row+1)*scale, fill=color)
+        guess = f_propagation(n, grid)
+        guess = guess.tolist().index(np.max(guess))
+        text_var.set(f"Guess: {guess}")
+
+def get_image(grid=grid):
+    x = random.randint(0, len(train_images)-1)
+    new_grid = train_images[x]
+    for e in range(len(grid)):
+        grid[e] = new_grid[e]
+    gridrender()
 
 canvas.pack()
 gridrender()
-guess = 0
 def rando(grid=grid):
     for e in range(len(grid)):
         grid[e] = np.random.rand()
@@ -37,11 +81,6 @@ def clear():
 
 mousedown = False
 drawradius = 500
-sensitivity = 1
-text_var = StringVar()
-text_var.set(f"Guess: {guess}")
-est = Label(win, textvariable=text_var, height=3, width=30, bg="white", font=("Helvetica", 16, "bold"))
-est.pack()
 
 def key(event):
     #print("pressed")
@@ -73,14 +112,10 @@ def color_square(square, grid=grid, amt=1):
 
 def moved(event):
     global mousedown
-    global guess
     #print("moved to:", event.x, event.y, mousedown)
     if mousedown:
         color_squares_in_radius(event.x, event.y)
         gridrender()
-        guess = f_propagation(n, grid)
-        guess = guess.tolist().index(np.max(guess))
-        text_var.set(f"Guess: {guess}")
 
 #canvas.bind("<Key>", key)
 canvas.bind("<ButtonPress-1>", click_down)
@@ -88,7 +123,7 @@ canvas.bind("<ButtonRelease-1>", click_up)
 canvas.bind('<Motion>', moved)
 
 
-rand_button = Button(win, text="randomise", command=rando)
+rand_button = Button(win, text="random image", command=get_image)
 rand_button.pack()
 clear_button = Button(win, text="clear", command=clear)
 clear_button.pack()
