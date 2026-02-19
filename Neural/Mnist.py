@@ -35,12 +35,12 @@ test_images = load_images("Neural/MNIST Dataset/mnist/t10k-images.idx3-ubyte")
 test_labels = load_labels("Neural/MNIST Dataset/mnist/t10k-labels.idx1-ubyte")
 
 #images are 28x28, 60k training and 10k testing images
-n = Network(shape = [784, 20, 20, 20, 10], is_random = True, activation=SIGMOID)
+n = Network(shape = [784, 100, 100, 10], is_random = True, activation=SIGMOID)
 
 print("Starting training...")
 
 #Adjust for amt of training
-amt = 1_000_000
+amt = 100_000
 
 #Get random image, and back propagate for improvement
 for i in tqdm(range(amt)):
@@ -71,4 +71,4 @@ efficiency = (efficiency/amt_)*100
 print(f"Network ran at an efficiency of {round(efficiency, 4)}%.")
 
 # save_network(n, f"networks/mnist_{amt/1000}k.nn")
-# save_network(n, f"networks/mnist_1m.nn")
+save_network(n, f"networks/mnist_100k.nn")

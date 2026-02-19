@@ -11,7 +11,7 @@ canvas = Canvas(win, width=28*scale, height=28*scale, bg="white")
 
 grid = np.zeros(784)
 
-model = "mnist_1m.nn"
+model = "mnist_100k.nn"
 n = load_network(f'networks/{model}')
 
 def load_images(filename):
