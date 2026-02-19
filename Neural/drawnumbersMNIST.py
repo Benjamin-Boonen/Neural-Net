@@ -11,7 +11,7 @@ canvas = Canvas(win, width=28*scale, height=28*scale, bg="white")
 
 grid = np.zeros(784)
 
-model = "mnist_60k.nn"
+model = "mnist_1m.nn"
 n = load_network(f'networks/{model}')
 
 def load_images(filename):
@@ -107,7 +107,7 @@ def color_squares_in_radius(x, y, radius=drawradius):
 
         if (x_square-x)**2 + (y_square-y)**2 <= drawradius:
             d = np.sqrt((x_square-x)**2 + (y_square-y)**2)
-            amt = -((d/drawradius)**2)+1
+            amt = (-((d/drawradius)**2)+1)/3
             color_square(e, amt=amt)
 
 def color_square(square, grid=grid, amt=1):
