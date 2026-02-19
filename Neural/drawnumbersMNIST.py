@@ -10,7 +10,8 @@ canvas = Canvas(win, width=28*scale, height=28*scale, bg="white")
 
 grid = np.zeros(784)
 
-def gridrender(grid=grid):
+def gridrender(grid=grid, canvas=canvas):
+    canvas.delete("all")
     for e in range(len(grid)):
         collumn = e % 28
         row = e // 28
@@ -28,23 +29,45 @@ def rando(grid=grid):
     gridrender()
 
 mousedown = False
+drawradius = 300
+sensitivity = 0.8
+
 def key(event):
-    print("pressed")
+    #print("pressed")
     repr(event.char)
 
 def click_down(event):
     global mousedown
-    print("clicked at", event.x, event.y)
+    #print("clicked at", event.x, event.y)
     mousedown = True
 
 def click_up(event):
     global mousedown
-    print("released at", event.x, event.y)
+    #print("released at", event.x, event.y)
     mousedown = False
+
+def squares_in_radius(x, y, radius=drawradius):
+    ind = []
+    for e in range(len(grid)):
+        x_square = (e % 28)*scale + scale//2
+        y_square = (e // 28)*scale + scale//2
+
+        if (x_square-x)**2 + (y_square-y)**2 <= drawradius:
+            ind.append(e)
+    return ind
+
+def color_squares(squares, grid=grid, sensitivity=sensitivity):
+    for s in squares:
+        grid[s] = max(min(1, grid[s] + sensitivity), 0)
+        #print(grid[s], "color")
 
 def moved(event):
     global mousedown
-    print("moved to:", event.x, event.y, mousedown)
+    #print("moved to:", event.x, event.y, mousedown)
+    if mousedown:
+        sir = squares_in_radius(event.x, event.y)
+        color_squares(sir)
+        gridrender()
 
 
 #canvas.bind("<Key>", key)
