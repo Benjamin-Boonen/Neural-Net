@@ -171,6 +171,13 @@ class Network:
     def b_propagation(self, values, expected, learning_rate=0.1):
         return b_propagation(self, values, expected, learning_rate, function=self.activation)
 
+    def add_layer(self, index: int, size: int):
+        if index > len(self._shape):
+            raise ValueError(f"Index needs to be smaller than amount of layers: {len(self._shape)}, for you can't replace an output layer.")
+        
+        next_layer = self.layers[index]
+        new_layer = Layer(size=size, next_layer_size=next_layer.get_size())
+
     def __str__(self):
         s = ""
         for i in range(len(self.layers)):
