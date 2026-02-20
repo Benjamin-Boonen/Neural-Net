@@ -57,6 +57,9 @@ class Layer:
                 if b:
                     self._biases = np.zeros(next_layer_size)
 
+    def change_size(self, n):
+        self._size = n
+
     def get_size(self):
         return self._size
     
@@ -171,13 +174,16 @@ class Network:
     def b_propagation(self, values, expected, learning_rate=0.1):
         return b_propagation(self, values, expected, learning_rate, function=self.activation)
 
-    def add_layer(self, index: int, size: int):
-        if index > len(self._shape):
+    def add_layer(self, ix: int, size: int):
+        if ix >= len(self.get_shape()):
             raise ValueError(f"Index needs to be smaller than amount of layers: {len(self._shape)}, for you can't replace an output layer.")
         
-        next_layer = self.layers[index]
-        new_layer = Layer(size=size, next_layer_size=next_layer.get_size(), index=index)
-        self.layers.insert(index, new_layer)
+        next_layer = self.layers[ix]
+        self.layers[ix-1].change_size(size)
+        ### CHANGE WEIGHTS, BIASES AND VALUE LIST FOR LAYER ###
+        self._shape.insert(ix, size)
+        new_layer = Layer(size=size, next_layer_size=next_layer.get_size(), index=ix)
+        self.layers.insert(ix, new_layer)
 
     def __str__(self):
         s = ""
@@ -342,8 +348,13 @@ def b_propagation(network: Network, values, expected, learning_rate=0.1, functio
 
 if __name__ == "__main__":
     print("WARNING: program ran as __main__, training on XOR...")
-    n = Network(shape=[2, 4, 4, 1], is_random=True)
+    n = Network(shape=[2, 4, 1], is_random=True)
     
+    print(n.get_shape())
+    n.add_layer(2, 5)
+    print(n.get_shape())
+    print(n.layers[3].get_size())
+
     # Train on XOR
     data = [
         ([0,0],[0]),
@@ -352,7 +363,7 @@ if __name__ == "__main__":
         ([1,1],[0])
     ]
     
-    for epoch in range(100000):
+    for epoch in range(10000):
         x, y = random.choice(data)
         b_propagation(n, x, y, learning_rate=1)
     
