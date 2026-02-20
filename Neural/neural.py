@@ -176,7 +176,8 @@ class Network:
             raise ValueError(f"Index needs to be smaller than amount of layers: {len(self._shape)}, for you can't replace an output layer.")
         
         next_layer = self.layers[index]
-        new_layer = Layer(size=size, next_layer_size=next_layer.get_size())
+        new_layer = Layer(size=size, next_layer_size=next_layer.get_size(), index=index)
+        self.layers.insert(index, new_layer)
 
     def __str__(self):
         s = ""
