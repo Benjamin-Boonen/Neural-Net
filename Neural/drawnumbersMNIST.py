@@ -47,7 +47,7 @@ est = Label(win, textvariable=text_var, height=3, width=30, bg="white", font=("H
 est.pack()
 
 mousedown = False
-drawradius = 500
+drawradius = 750
 
 def gridrender(grid=grid, canvas=canvas):
     global guess
@@ -107,7 +107,7 @@ def color_squares_in_radius(x, y, radius=drawradius):
 
         if (x_square-x)**2 + (y_square-y)**2 <= drawradius:
             d = np.sqrt((x_square-x)**2 + (y_square-y)**2)
-            amt = (-((d/drawradius)**2)+1)/3
+            amt = (-((d/drawradius)**4)+1)/3
             color_square(e, amt=amt)
 
 def color_square(square, grid=grid, amt=1):
