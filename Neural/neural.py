@@ -179,10 +179,11 @@ class Network:
             raise ValueError(f"Index needs to be smaller than amount of layers: {len(self._shape)}, for you can't replace an output layer.")
         
         next_layer = self.layers[ix]
-        self.layers[ix-1].change_size(size)
-        ### CHANGE WEIGHTS, BIASES AND VALUE LIST FOR LAYER ###
+        prev_layer = self.layers[ix-1]
+        new_prev_layer = Layer(size=prev_layer.get_size(), next_layer_size=size, index=ix-1)
         self._shape.insert(ix, size)
         new_layer = Layer(size=size, next_layer_size=next_layer.get_size(), index=ix)
+        self.layers[ix-1] = new_prev_layer
         self.layers.insert(ix, new_layer)
 
     def __str__(self):
@@ -349,11 +350,6 @@ def b_propagation(network: Network, values, expected, learning_rate=0.1, functio
 if __name__ == "__main__":
     print("WARNING: program ran as __main__, training on XOR...")
     n = Network(shape=[2, 4, 1], is_random=True)
-    
-    print(n.get_shape())
-    n.add_layer(2, 5)
-    print(n.get_shape())
-    print(n.layers[3].get_size())
 
     # Train on XOR
     data = [
