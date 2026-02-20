@@ -186,6 +186,16 @@ class Network:
         self.layers[ix-1] = new_prev_layer
         self.layers.insert(ix, new_layer)
 
+    def radiate(self, factor=0.1):
+        for layer in self.layers:
+            for w in range(len(layer.weights)):
+                r = factor*(np.random.rand() * 2 - 1)
+                layer.weights[w] += r
+
+            for b in range(len(layer.biases)):
+                r = factor*(np.random.rand() * 2 - 1)
+                layer.weights[b] += r
+
     def __str__(self):
         s = ""
         for i in range(len(self.layers)):
@@ -351,7 +361,6 @@ if __name__ == "__main__":
     print("WARNING: program ran as __main__, training on XOR...")
     n = Network(shape=[2, 4, 1], is_random=True)
 
-    # Train on XOR
     data = [
         ([0,0],[0]),
         ([0,1],[1]),
