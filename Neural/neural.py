@@ -39,6 +39,7 @@ class Layer:
         self._biased = b
         self._weighted = w
         self._size = size
+        self._outp = _outp_
         self.index = index
 
         if not(_outp_):
@@ -57,6 +58,8 @@ class Layer:
                 if b:
                     self._biases = np.zeros(next_layer_size)
 
+    def is_outp(self):
+        return self._outp
     def change_size(self, n):
         self._size = n
 
@@ -187,27 +190,19 @@ class Network:
         self.layers.insert(ix, new_layer)
 
     def radiate(self, factor=0.1):
-        for layer in self.layers:
-            new_weights = []
-            for c in layer.get_weights():
-                temp = []
-                for w in range(len(c)):
-                    r = factor*(np.random.rand() * 2 - 1)
-                    temp.append(c[w] + r)
-                new_weights.append(temp)
-                
-            layer.set_weights(new_weights)
-            new_biases = []
-            for c in layer.get_biases():
-                if type(c) == float or type(c) == np.float64:
-                    new_biases.append(c)
-                else:
-                    for b in range(len(c)):
-                        temp = []  
-                        r = factor*(np.random.rand() * 2 - 1)
-                        temp.append(c[b] + r)
-                    new_biases.append(temp)
-            layer.set_biases(new_biases)
+        for layer in range(len(self.layers)):
+            if self.layers[layer].is_outp():
+                continue
+            else:
+                new_weights = np.random.random((self.layers[layer].get_size(), self.layers[layer+1].get_size()))
+                new_weights *= factor * 2
+                new_weights -= factor
+                self.layers[layer].set_weights(new_weights)
+
+                new_biases = np.random.random((self.layers[layer].get_size(), self.layers[layer+1].get_size()))
+                new_biases *= factor * 2
+                new_biases -= factor
+                self.layers[layer].set_biases(new_biases.to_list())
 
     def __str__(self):
         s = ""
