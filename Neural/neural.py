@@ -188,13 +188,26 @@ class Network:
 
     def radiate(self, factor=0.1):
         for layer in self.layers:
-            for w in range(len(layer.weights)):
-                r = factor*(np.random.rand() * 2 - 1)
-                layer.weights[w] += r
-
-            for b in range(len(layer.biases)):
-                r = factor*(np.random.rand() * 2 - 1)
-                layer.weights[b] += r
+            new_weights = []
+            for c in layer.get_weights():
+                temp = []
+                for w in range(len(c)):
+                    r = factor*(np.random.rand() * 2 - 1)
+                    temp.append(c[w] + r)
+                new_weights.append(temp)
+                
+            layer.set_weights(new_weights)
+            new_biases = []
+            for c in layer.get_biases():
+                if type(c) == float or type(c) == np.float64:
+                    new_biases.append(c)
+                else:
+                    for b in range(len(c)):
+                        temp = []  
+                        r = factor*(np.random.rand() * 2 - 1)
+                        temp.append(c[b] + r)
+                    new_biases.append(temp)
+            layer.set_biases(new_biases)
 
     def __str__(self):
         s = ""
@@ -360,6 +373,8 @@ def b_propagation(network: Network, values, expected, learning_rate=0.1, functio
 if __name__ == "__main__":
     print("WARNING: program ran as __main__, training on XOR...")
     n = Network(shape=[2, 4, 1], is_random=True)
+
+    n.radiate()
 
     data = [
         ([0,0],[0]),
