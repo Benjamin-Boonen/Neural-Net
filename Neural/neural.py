@@ -197,12 +197,12 @@ class Network:
                 new_weights = np.random.random((self.layers[layer].get_size(), self.layers[layer+1].get_size()))
                 new_weights *= factor * 2
                 new_weights -= factor
-                self.layers[layer].set_weights(new_weights)
+                self.layers[layer].set_weights(new_weights.tolist())
 
                 new_biases = np.random.random((self.layers[layer].get_size(), self.layers[layer+1].get_size()))
                 new_biases *= factor * 2
                 new_biases -= factor
-                self.layers[layer].set_biases(new_biases.to_list())
+                self.layers[layer].set_biases(new_biases.tolist())
 
     def __str__(self):
         s = ""
