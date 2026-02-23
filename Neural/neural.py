@@ -226,6 +226,17 @@ class Network:
     
     def mutate(self, node_chance=0.01, layer_chance=0.005, layer_size_range=[None, None], node_amt_range=[None, None]):
         chance = random.random()
+        if chance <= node_chance:
+            if node_amt_range == [None, None]:
+                node_amt_range = [1, np.max(self._shape)]
+            self.mutate_node(random.randint(node_amt_range[0], node_amt_range[1]))
+        chance = random.random()
+        if chance <= layer_chance:
+            if node_amt_range == [None, None]:
+                node_amt_range = [1, len(self._shape)-1]
+            n = random.randint(1, np.max(self._shape))
+            self.mutate_layer(random.randint(node_amt_range[0], node_amt_range[1]), size=n)
+
 
 
     def __str__(self):
