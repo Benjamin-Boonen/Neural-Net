@@ -39,6 +39,7 @@ class Layer:
         self._biased = b
         self._weighted = w
         self._size = size
+        self._nls_ = next_layer_size
         self._outp = _outp_
         self.index = index
 
@@ -107,6 +108,13 @@ class Layer:
             raise ValueError("Length of bias list should be equal to the size of the layer.")
         
         self._biases = np_biases
+    
+    def add_node(self, n=1):
+        self._size += n
+        new_weights = np.zeros((self._size, self._nls_))
+        new_weights += self._weights
+        self.set_weights(new_weights)
+
 
 class Network:
     def __init__(self, shape=None, weighted=True, is_random=False, activation=SIGMOID):
@@ -203,6 +211,22 @@ class Network:
                 new_biases *= factor * 2
                 new_biases -= factor
                 self.layers[layer].set_biases(new_biases.tolist())
+
+    def mutate_node(self, n=1):
+        for i in range(n):
+            ind = random.randint(0, len(self.get_shape())-1)
+            self.layers[ind].add_node()
+            self._shape[ind] += 1
+
+    def mutate_layer(self, n=1, size=1):
+        for i in range(n):
+            ind = random.randint(0, len(self.get_shape())-1)
+            self.add_layer(ind, size)
+            self._shape.insert(ind, size)
+    
+    def mutate(self, node_chance=0.01, layer_chance=0.005, layer_size_range=[None, None], node_amt_range=[None, None]):
+        chance = random.random()
+
 
     def __str__(self):
         s = ""
