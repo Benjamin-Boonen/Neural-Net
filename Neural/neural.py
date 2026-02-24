@@ -246,7 +246,26 @@ class Network:
         return s
 
 class Species:
-    def __init__(self, amt):
+    def __init__(self, indiv=None):
+        self.individuals = []
+
+        if indiv != None:
+            if (type(indiv) == list) or (type(indiv) == np.array):
+                for ind in indiv:
+                    if type(ind) == Network:
+                        self.individuals.append(ind)
+    
+    def add_network(self, n: Network):
+        if type(n) == Network:
+            self.individuals.append(n)
+        else:
+            raise TypeError("All items added need be Networks")
+    
+    def add_networks(self, n: list):
+        for ind in n:
+            self.add_network(ind)
+
+        
 
 
 ### PERSISTENCY ###
