@@ -245,6 +245,10 @@ class Network:
             s += f"Layer {i} values:\n {self.layers[i].get_values()}, weights:\n {self.layers[i].get_weights()}, Layer {i} biases: \n {self.layers[i].get_biases()} \n"
         return s
 
+class Species:
+    def __init__(self, amt):
+
+
 ### PERSISTENCY ###
 def save_network(network: Network, filename="network.nn"):
     data = [network.get_shape()]
