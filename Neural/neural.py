@@ -282,7 +282,10 @@ class Species:
                                         learning_rate=learning_rate, 
                                         function=function))
         return result
-        
+    
+    def radiate(self, factor=0.1):
+        for ind in self.individuals:
+            ind.radiate(factor=factor)
 
 
 ### PERSISTENCY ###
