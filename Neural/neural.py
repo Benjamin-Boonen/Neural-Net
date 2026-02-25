@@ -273,7 +273,7 @@ class Species:
                                         function=function))
         return result
     
-    def b_propagation(self, values, expected, learning_rate=0.1, function=SIGMOID)
+    def b_propagation(self, values, expected, learning_rate=0.1, function=SIGMOID):
         result = []
         for i in range(len(self.individuals)):
             result.append(b_propagation(self.individuals[i],
