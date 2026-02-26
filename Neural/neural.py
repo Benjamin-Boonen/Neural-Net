@@ -245,6 +245,49 @@ class Network:
             s += f"Layer {i} values:\n {self.layers[i].get_values()}, weights:\n {self.layers[i].get_weights()}, Layer {i} biases: \n {self.layers[i].get_biases()} \n"
         return s
 
+class Species:
+    def __init__(self, indiv=None):
+        self.individuals = []
+
+        if indiv != None:
+            if (type(indiv) == list) or (type(indiv) == np.array):
+                for ind in indiv:
+                    if type(ind) == Network:
+                        self.individuals.append(ind)
+    
+    def add_network(self, n: Network):
+        if type(n) == Network:
+            self.individuals.append(n)
+        else:
+            raise TypeError("All items added need be Networks")
+    
+    def add_networks(self, n: list):
+        for ind in n:
+            self.add_network(ind)
+    
+    def f_propagation(self, values, function=SIGMOID):
+        result = []
+        for i in range(len(self.individuals)):
+            result.append(f_propagation(self.individuals[i], 
+                                        values[i], 
+                                        function=function))
+        return result
+    
+    def b_propagation(self, values, expected, learning_rate=0.1, function=SIGMOID):
+        result = []
+        for i in range(len(self.individuals)):
+            result.append(b_propagation(self.individuals[i],
+                                        values[i],
+                                        expected=expected,
+                                        learning_rate=learning_rate, 
+                                        function=function))
+        return result
+    
+    def radiate(self, factor=0.1):
+        for ind in self.individuals:
+            ind.radiate(factor=factor)
+
+
 ### PERSISTENCY ###
 def save_network(network: Network, filename="network.nn"):
     data = [network.get_shape()]
