@@ -1,5 +1,5 @@
-#Fix diagonal for yellow (player 1)
-
+#Fix diagonal for yellow (player 1) up right to bot left
+#Make game number increase
 from neural import *
 from tkinter import *
 from time import sleep
@@ -85,7 +85,7 @@ def callback(event):
                             checkingD[0] = 1
                         elif j == [2, 0]:
                             checkingD[1] = 1
-                        elif j == [2, 0]:
+                        elif j == [0, 2]:
                             checkingD[2] = 1
                         elif j == [2, 2]:
                             checkingD[3] = 1
@@ -120,14 +120,16 @@ def callback(event):
                             checkingD[0] = 1
                         elif j == [2, 0]:
                             checkingD[1] = 1
-                        elif j == [2, 0]:
+                        elif j == [0, 2]:
                             checkingD[2] = 1
                         elif j == [2, 2]:
                             checkingD[3] = 1
                         if checkingD[0] and checkingD[3] == 1:
+                            wins += 1
                             reset()
                             break
                         elif checkingD[1] and checkingD[2] == 1:
+                            wins += 1
                             reset()
                             break
                 else:
@@ -157,7 +159,7 @@ def reset():
     cv.create_rectangle(65*scl, 0, 70*scl, 100*scl, fill="RED")
     cv.create_rectangle(0, 30*scl, 100*scl, 35*scl, fill="RED")
     cv.create_rectangle(0, 65*scl, 100*scl, 70*scl, fill="RED")
-    lbl = Label(wn, text=wins)
+    lbl.config(text=wins)
     taken.clear()
     taken0.clear()
     taken1.clear()
