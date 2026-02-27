@@ -1,13 +1,13 @@
-#Fix diagonal for yellow (player 1) up right to bot left
-#Make game number increase
 from neural import *
-from tkinter import *
-from time import sleep
+from tkinter import * 
+from PIL import ImageGrab
+
 scl = 5 
 players = ["GREEN", "YELLOW"]
 taken = []
 taken0 = []
 taken1 = []
+feed = []
 turn = False
 wins = 0
 
@@ -15,6 +15,8 @@ wn = Tk()
 cv = Canvas(wn, width=100*scl, height=100*scl, bg="BLACK")
 
 lbl = Label(wn, text=wins)
+
+n = Network(shape = [9, 4, 5, 4, 9], is_random = True, activation=SIGMOID)
 
 #Create lines
 cv.create_rectangle(30*scl, 0, 35*scl, 100*scl, fill="RED")
@@ -59,8 +61,8 @@ def callback(event):
         if cord == taken[i]:
             legal = False
     
-    if legal:
-        cv.create_rectangle(x1, y1, x2, y2, fill = players[turn])
+    if legal and not turn:
+        getRekt(x1, y1, x2, y2, players[turn])
         cv.update()
 
         taken.append(cord)
@@ -150,8 +152,22 @@ def callback(event):
         if len(taken) == 9:
             reset()
 
+    feed.append(get_color(cv, event, 10*scl, 10*scl))
+    feed.append(get_color(cv, event, 10*scl, 50*scl))
+    feed.append(get_color(cv, event, 10*scl, 80*scl))
+    feed.append(get_color(cv, event, 50*scl, 10*scl))
+    feed.append(get_color(cv, event, 50*scl, 50*scl))
+    feed.append(get_color(cv, event, 50*scl, 80*scl))
+    feed.append(get_color(cv, event, 80*scl, 10*scl))
+    feed.append(get_color(cv, event, 80*scl, 50*scl))
+    feed.append(get_color(cv, event, 80*scl, 80*scl))
+
+    output = f_propagation(n, feed)
+    ind = output.index(np.max(output))
+    print(ind)
+
 def reset():
-    global lbl
+    global lbl, turn
 
     print("Reseting")
     cv.delete("all")
@@ -163,6 +179,16 @@ def reset():
     taken.clear()
     taken0.clear()
     taken1.clear()
+    turn = False
+
+def getRekt(x1, y1, x2, y2, clr):
+    cv.create_rectangle(x1, y1, x2, y2, fill=clr)
+
+def get_color(cnvs, event, ex, ey):
+    x, y = cnvs.winfo_rootx()+event.x, cnvs.winfo_rooty()+event.y
+    # x, y = cnvs.winfo_pointerx(), cnvs.winfo_pointery()
+    image = ImageGrab.grab((x, y, x+1, y+1)) # 1 pixel image
+    return image.getpixel((ex, ey))
 
 lbl.pack()
 cv.pack()
