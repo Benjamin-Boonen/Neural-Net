@@ -1,13 +1,16 @@
 from neural import *
 from tkinter import * 
-from PIL import ImageGrab
+from time import sleep
 
 scl = 5 
 players = ["GREEN", "YELLOW"]
 taken = []
 taken0 = []
 taken1 = []
-feed = []
+takenNr = []
+feed = [0, 0, 0,
+        0, 0, 0,
+        0, 0, 0]
 turn = False
 wins = 0
 
@@ -66,105 +69,45 @@ def callback(event):
         cv.update()
 
         taken.append(cord)
-        if turn:
-            taken1.append(cord)
-        else:
-            taken0.append(cord)
+        taken0.append(cord)
+        takenNr.append(cord[1]*3 + cord[0])
 
-        #Quick overview, once 3 squares have been taken, it starts checking for wins. It will then take a square, 
-        #and for every other taken square it starts checking if they are on the same x or y. If so, it adds 1 to
-        #the checking list for that axis. The list starts at because it doesn't check itself. If any value in the checking
-        #reaches 3, that's a win ig?
-        if turn:
-            for i in taken1:
-                checkingX = [1, 1, 1]
-                checkingY = [1, 1, 1]
-                checkingD = [0, 0, 
-                             0, 0]
-                if i == [1, 1]:
-                    for j in taken1:
-                        if j == [0, 0]:
-                            checkingD[0] = 1
-                        elif j == [2, 0]:
-                            checkingD[1] = 1
-                        elif j == [0, 2]:
-                            checkingD[2] = 1
-                        elif j == [2, 2]:
-                            checkingD[3] = 1
-                        if checkingD[0] and checkingD[3] == 1:
-                            reset()
-                            break
-                        elif checkingD[1] and checkingD[2] == 1:
-                            reset()
-                            break
-                else:
-                    for j in taken1:
-                        if i != j:
-                            if i[0] == j[0]:
-                                checkingX[i[0]] += 1
-
-                            elif i[1] == j[1]:
-                                checkingY[i[1]] += 1
-                    for j in range(2):
-                        if checkingX[j] == 3 or checkingY[j] == 3:
-                            reset()
-                            break
-                    
-        else:
-            for i in taken0:
-                checkingX = [1, 1, 1]
-                checkingY = [1, 1, 1]
-                checkingD = [0, 0, 
-                             0, 0]
-                if i == [1, 1]:
-                    for j in taken0:
-                        if j == [0, 0]:
-                            checkingD[0] = 1
-                        elif j == [2, 0]:
-                            checkingD[1] = 1
-                        elif j == [0, 2]:
-                            checkingD[2] = 1
-                        elif j == [2, 2]:
-                            checkingD[3] = 1
-                        if checkingD[0] and checkingD[3] == 1:
-                            wins += 1
-                            reset()
-                            break
-                        elif checkingD[1] and checkingD[2] == 1:
-                            wins += 1
-                            reset()
-                            break
-                else:
-                    for j in taken0:
-                        if i != j:
-                            if i[0] == j[0]:
-                                checkingX[i[0]] += 1
-
-                            elif i[1] == j[1]:
-                                checkingY[i[1]] += 1
-                    for j in range(2):
-                        if checkingX[j] == 3 or checkingY[j] == 3:
-                            wins += 1
-                            reset()
-                            break
+        checkWin()
 
         turn  = not turn
         if len(taken) == 9:
             reset()
 
-    feed.append(get_color(cv, event, 10*scl, 10*scl))
-    feed.append(get_color(cv, event, 10*scl, 50*scl))
-    feed.append(get_color(cv, event, 10*scl, 80*scl))
-    feed.append(get_color(cv, event, 50*scl, 10*scl))
-    feed.append(get_color(cv, event, 50*scl, 50*scl))
-    feed.append(get_color(cv, event, 50*scl, 80*scl))
-    feed.append(get_color(cv, event, 80*scl, 10*scl))
-    feed.append(get_color(cv, event, 80*scl, 50*scl))
-    feed.append(get_color(cv, event, 80*scl, 80*scl))
+    if turn:
+        sleep(0.3)
+        feed = buildFeed()
+        output = f_propagation(n, feed)
 
-    output = f_propagation(n, feed)
-    ind = output.index(np.max(output))
-    print(ind)
+    
+        remaining_indices = [i for i in range(len(output)) if i not in takenNr]
+
+        if remaining_indices:
+            max_index = max(remaining_indices, key=lambda i: output[i])
+            ind = max_index
+        
+
+        print(feed)
+        print(ind)
+
+        target = [ind % 3 , ind // 3]
+
+        getRekt(target[0]*35*scl, target[1]*35*scl, target[0]*35*scl+30*scl, target[1]*35*scl+30*scl, players[turn])
+        
+        taken.append(cord)
+        taken1.append(cord)
+        takenNr.append(cord[1]*3 + cord[0])
+
+        checkWin()
+
+        turn  = not turn
+
+        if len(taken) == 9:
+            reset()
 
 def reset():
     global lbl, turn
@@ -179,16 +122,106 @@ def reset():
     taken.clear()
     taken0.clear()
     taken1.clear()
+    takenNr.clear()
     turn = False
 
 def getRekt(x1, y1, x2, y2, clr):
     cv.create_rectangle(x1, y1, x2, y2, fill=clr)
 
-def get_color(cnvs, event, ex, ey):
-    x, y = cnvs.winfo_rootx()+event.x, cnvs.winfo_rooty()+event.y
-    # x, y = cnvs.winfo_pointerx(), cnvs.winfo_pointery()
-    image = ImageGrab.grab((x, y, x+1, y+1)) # 1 pixel image
-    return image.getpixel((ex, ey))
+def buildFeed():
+    board = [0, 0, 0,
+             0, 0, 0,
+             0, 0, 0]
+
+    for move in taken0:
+        index = move[1] * 3 + move[0]
+        board[index] = -1
+
+    for move in taken1:
+        index = move[1] * 3 + move[0]
+        board[index] = 1
+
+    return board
+
+def checkWin():
+    global wins
+
+    #Quick overview, once 3 squares have been taken, it starts checking for wins. It will then take a square, 
+    #and for every other taken square it starts checking if they are on the same x or y. If so, it adds 1 to
+    #the checking list for that axis. The list starts at because it doesn't check itself. If any value in the checking
+    #reaches 3, that's a win ig?
+    if turn:
+        for i in taken1:
+            checkingX = [1, 1, 1]
+            checkingY = [1, 1, 1]
+            checkingD = [0, 0, 
+                            0, 0]
+            if i == [1, 1]:
+                for j in taken1:
+                    if j == [0, 0]:
+                        checkingD[0] = 1
+                    elif j == [2, 0]:
+                        checkingD[1] = 1
+                    elif j == [0, 2]:
+                        checkingD[2] = 1
+                    elif j == [2, 2]:
+                        checkingD[3] = 1
+                    if checkingD[0] and checkingD[3] == 1:
+                        reset()
+                        break
+                    elif checkingD[1] and checkingD[2] == 1:
+                        reset()
+                        break
+            else:
+                for j in taken1:
+                    if i != j:
+                        if i[0] == j[0]:
+                            checkingX[i[0]] += 1
+
+                        elif i[1] == j[1]:
+                            checkingY[i[1]] += 1
+                for j in range(2):
+                    if checkingX[j] == 3 or checkingY[j] == 3:
+                        reset()
+                        break
+                
+    else:
+        for i in taken0:
+            checkingX = [1, 1, 1]
+            checkingY = [1, 1, 1]
+            checkingD = [0, 0, 
+                            0, 0]
+            if i == [1, 1]:
+                for j in taken0:
+                    if j == [0, 0]:
+                        checkingD[0] = 1
+                    elif j == [2, 0]:
+                        checkingD[1] = 1
+                    elif j == [0, 2]:
+                        checkingD[2] = 1
+                    elif j == [2, 2]:
+                        checkingD[3] = 1
+                    if checkingD[0] and checkingD[3] == 1:
+                        wins += 1
+                        reset()
+                        break
+                    elif checkingD[1] and checkingD[2] == 1:
+                        wins += 1
+                        reset()
+                        break
+            else:
+                for j in taken0:
+                    if i != j:
+                        if i[0] == j[0]:
+                            checkingX[i[0]] += 1
+
+                        elif i[1] == j[1]:
+                            checkingY[i[1]] += 1
+                for j in range(2):
+                    if checkingX[j] == 3 or checkingY[j] == 3:
+                        wins += 1
+                        reset()
+                        break
 
 lbl.pack()
 cv.pack()
