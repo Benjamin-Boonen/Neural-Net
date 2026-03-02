@@ -1,6 +1,5 @@
 from neural import *
 from tkinter import * 
-from time import sleep
 
 scl = 5 
 players = ["GREEN", "YELLOW"]
@@ -12,6 +11,7 @@ feed = [0, 0, 0,
         0, 0, 0,
         0, 0, 0]
 turn = False
+won = False
 wins = 0
 
 wn = Tk()
@@ -24,48 +24,35 @@ n = Network(shape = [9, 4, 5, 4, 9], is_random = True, activation=SIGMOID)
 #Create lines
 cv.create_rectangle(30*scl, 0, 35*scl, 100*scl, fill="RED")
 cv.create_rectangle(65*scl, 0, 70*scl, 100*scl, fill="RED")
-cv.create_rectangle(0, 30*scl, 100*scl, 35*scl, fill="RED")
-cv.create_rectangle(0, 65*scl, 100*scl, 70*scl, fill="RED")
+cv.create_rectangle(0, 30*scl, 100*scl, 35*scl, fill="RED", outline="RED")
+cv.create_rectangle(0, 65*scl, 100*scl, 70*scl, fill="RED", outline="RED")
 
 #On left click
 def callback(event):
-    global turn
-    global wins
+    global turn, wins, won
     cord = [1, 1]
     legal = True
 
     if event.x < 30*scl:
         cord[0] = 0
-        x1 = 0*scl
-        x2 = 30*scl
     elif event.x > 70*scl:
         cord[0] = 2
-        x1 = 70*scl
-        x2 = 100*scl
     else:
         cord[0] = 1
-        x1 = 35*scl
-        x2 = 65*scl
 
     if event.y < 30*scl:
         cord[1] = 0
-        y1 = 0*scl
-        y2 = 30*scl
     elif event.y > 70*scl:
         cord[1] = 2
-        y1 = 70*scl
-        y2 = 100*scl
     else:
         cord[1] = 1
-        y1 = 35*scl
-        y2 = 65*scl
     
     for i in range(len(taken)):
         if cord == taken[i]:
             legal = False
     
     if legal and not turn:
-        getRekt(x1, y1, x2, y2, players[turn])
+        getRekt(cord, players[turn])
         cv.update()
 
         taken.append(cord)
@@ -74,12 +61,10 @@ def callback(event):
 
         checkWin()
 
-        turn  = not turn
         if len(taken) == 9:
             reset()
 
     if turn:
-        sleep(0.3)
         feed = buildFeed()
         output = f_propagation(n, feed)
 
@@ -89,35 +74,31 @@ def callback(event):
         if remaining_indices:
             max_index = max(remaining_indices, key=lambda i: output[i])
             ind = max_index
-        
-
-        print(feed)
-        print(ind)
 
         target = [ind % 3 , ind // 3]
 
-        getRekt(target[0]*35*scl, target[1]*35*scl, target[0]*35*scl+30*scl, target[1]*35*scl+30*scl, players[turn])
+        getRekt(target, players[turn])
         
-        taken.append(cord)
-        taken1.append(cord)
-        takenNr.append(cord[1]*3 + cord[0])
+        taken.append(target)
+        taken1.append(target)
+        takenNr.append(ind)
 
         checkWin()
-
-        turn  = not turn
 
         if len(taken) == 9:
             reset()
 
+    print(turn)
+    
+         
 def reset():
     global lbl, turn
 
-    print("Reseting")
     cv.delete("all")
     cv.create_rectangle(30*scl, 0, 35*scl, 100*scl, fill="RED")
     cv.create_rectangle(65*scl, 0, 70*scl, 100*scl, fill="RED")
-    cv.create_rectangle(0, 30*scl, 100*scl, 35*scl, fill="RED")
-    cv.create_rectangle(0, 65*scl, 100*scl, 70*scl, fill="RED")
+    cv.create_rectangle(0, 30*scl, 100*scl, 35*scl, fill="RED", outline="RED")
+    cv.create_rectangle(0, 65*scl, 100*scl, 70*scl, fill="RED", outline="RED")
     lbl.config(text=wins)
     taken.clear()
     taken0.clear()
@@ -125,7 +106,15 @@ def reset():
     takenNr.clear()
     turn = False
 
-def getRekt(x1, y1, x2, y2, clr):
+    print("Reset")
+
+def getRekt(cord, clr):
+    print(cord)
+
+    x1 = cord[0]*35*scl
+    x2 = x1 + 30*scl
+    y1 = cord[1]*35*scl
+    y2 = y1 + 30*scl
     cv.create_rectangle(x1, y1, x2, y2, fill=clr)
 
 def buildFeed():
@@ -144,7 +133,7 @@ def buildFeed():
     return board
 
 def checkWin():
-    global wins
+    global wins, turn
 
     #Quick overview, once 3 squares have been taken, it starts checking for wins. It will then take a square, 
     #and for every other taken square it starts checking if they are on the same x or y. If so, it adds 1 to
@@ -222,6 +211,9 @@ def checkWin():
                         wins += 1
                         reset()
                         break
+    
+    turn  = not turn
+
 
 lbl.pack()
 cv.pack()
