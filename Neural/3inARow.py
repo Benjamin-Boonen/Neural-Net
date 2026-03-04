@@ -1,5 +1,6 @@
 from neural import *
 from tkinter import * 
+from time import sleep
 
 scl = 5 
 players = ["GREEN", "YELLOW"]
@@ -7,19 +8,13 @@ taken = []
 taken0 = []
 taken1 = []
 takenNr = []
-feed = [0, 0, 0,
-        0, 0, 0,
-        0, 0, 0]
 turn = False
-won = False
 wins = 0
+games = 0
+n = Network(shape = [9, 4, 5, 4, 9], is_random = True, activation=SIGMOID)
 
 wn = Tk()
 cv = Canvas(wn, width=100*scl, height=100*scl, bg="BLACK")
-
-lbl = Label(wn, text=wins)
-
-n = Network(shape = [9, 4, 5, 4, 9], is_random = True, activation=SIGMOID)
 
 #Create lines
 cv.create_rectangle(30*scl, 0, 35*scl, 100*scl, fill="RED")
@@ -29,27 +24,24 @@ cv.create_rectangle(0, 65*scl, 100*scl, 70*scl, fill="RED", outline="RED")
 
 #On left click
 def callback(event):
-    global turn, wins, won
-    cord = [1, 1]
-    legal = True
+    global turn, wins
 
     if event.x < 30*scl:
-        cord[0] = 0
+        cx = 0
     elif event.x > 70*scl:
-        cord[0] = 2
+        cx = 2
     else:
-        cord[0] = 1
+        cx = 1
 
     if event.y < 30*scl:
-        cord[1] = 0
+        cy = 0
     elif event.y > 70*scl:
-        cord[1] = 2
+        cy = 2
     else:
-        cord[1] = 1
-    
-    for i in range(len(taken)):
-        if cord == taken[i]:
-            legal = False
+        cy = 1
+
+    cord = (cx, cy)
+    legal = cord not in taken
     
     if legal and not turn:
         getRekt(cord, players[turn])
@@ -59,41 +51,46 @@ def callback(event):
         taken0.append(cord)
         takenNr.append(cord[1]*3 + cord[0])
 
+        before = games
         checkWin()
-        print(turn)
+        if games != before: return
         if len(taken) == 9:
             reset()
-            turn = False
+            return
+        turn = not turn
 
-    if turn:
+    elif turn:      #if/elif   Switch for PvA/PvP
         feed = buildFeed()
         output = f_propagation(n, feed)
-
-    
+        
         remaining_indices = [i for i in range(len(output)) if i not in takenNr]
 
         if remaining_indices:
-            max_index = max(remaining_indices, key=lambda i: output[i])
-            ind = max_index
+            ind = max(remaining_indices, key=lambda i: output[i])
 
-        target = [ind % 3 , ind // 3]
+        target = (ind % 3, ind // 3)
+        exVl = cord[1]*3 + cord[0]
 
-        getRekt(target, players[turn])
+        b_propagation(n, feed, exVl, learning_rate=0.1, function=SIGMOID)
+        print(ind, "|", exVl)
+        #getRekt(target, players[turn])       #Switch for PvA/PvP
+        getRekt(cord, players[turn])        #Switch for PvA/PvP
         
         taken.append(target)
         taken1.append(target)
         takenNr.append(ind)
 
+        before = games
         checkWin()
-
+        if games != before: return
         if len(taken) == 9:
-            reset()    
-            turn = False
-
+            reset()
+            return
+        turn = not turn
 
 def reset():
-    global lbl, turn
-
+    global lbl, turn, games
+    sleep(0.5)
     cv.delete("all")
     cv.create_rectangle(30*scl, 0, 35*scl, 100*scl, fill="RED")
     cv.create_rectangle(65*scl, 0, 70*scl, 100*scl, fill="RED")
@@ -104,14 +101,14 @@ def reset():
     taken0.clear()
     taken1.clear()
     takenNr.clear()
-    turn = True
+    turn = False
+    games += 1
 
-
-    print("Reset")
+    print("----------Reset----------")
+    print("Game", games)
+    print("Output   |   Expected Value")
 
 def getRekt(cord, clr):
-    print(cord)
-
     x1 = cord[0]*35*scl
     x2 = x1 + 30*scl
     y1 = cord[1]*35*scl
@@ -133,90 +130,47 @@ def buildFeed():
 
     return board
 
+def check_winner(moves):
+    wins = [
+        [(0,0),(1,0),(2,0)],  # rows
+        [(0,1),(1,1),(2,1)],
+        [(0,2),(1,2),(2,2)],
+        [(0,0),(0,1),(0,2)],  # columns
+        [(1,0),(1,1),(1,2)],
+        [(2,0),(2,1),(2,2)],
+        [(0,0),(1,1),(2,2)],  # diagonals
+        [(2,0),(1,1),(0,2)],
+    ]
+    return any(all(sq in moves for sq in line) for line in wins)
+
 def checkWin():
-    global wins, turn
+    global wins
+    if check_winner(taken0):
+        wins += 1
+        reset()
+    elif check_winner(taken1):
+        reset()
 
-    #Quick overview, once 3 squares have been taken, it starts checking for wins. It will then take a square, 
-    #and for every other taken square it starts checking if they are on the same x or y. If so, it adds 1 to
-    #the checking list for that axis. The list starts at because it doesn't check itself. If any value in the checking
-    #reaches 3, that's a win ig?
-    if turn:
-        for i in taken1:
-            checkingX = [1, 1, 1]
-            checkingY = [1, 1, 1]
-            checkingD = [0, 0, 
-                            0, 0]
-            if i == [1, 1]:
-                for j in taken1:
-                    if j == [0, 0]:
-                        checkingD[0] = 1
-                    elif j == [2, 0]:
-                        checkingD[1] = 1
-                    elif j == [0, 2]:
-                        checkingD[2] = 1
-                    elif j == [2, 2]:
-                        checkingD[3] = 1
-                    if checkingD[0] and checkingD[3] == 1:
-                        reset()
-                        break
-                    elif checkingD[1] and checkingD[2] == 1:
-                        reset()
-                        break
-            else:
-                for j in taken1:
-                    if i != j:
-                        if i[0] == j[0]:
-                            checkingX[i[0]] += 1
+def loadNet():
+    global n, games
+    model = "3iaR_1.nn"
+    games = 0       #set to model number -1
+    n = load_network(f'networks/{model}')
+    print("loaded", model)
+    reset()
 
-                        elif i[1] == j[1]:
-                            checkingY[i[1]] += 1
-                for j in range(2):
-                    if checkingX[j] == 3 or checkingY[j] == 3:
-                        reset()
-                        break
-                
-    else:
-        for i in taken0:
-            checkingX = [1, 1, 1]
-            checkingY = [1, 1, 1]
-            checkingD = [0, 0, 
-                            0, 0]
-            if i == [1, 1]:
-                for j in taken0:
-                    if j == [0, 0]:
-                        checkingD[0] = 1
-                    elif j == [2, 0]:
-                        checkingD[1] = 1
-                    elif j == [0, 2]:
-                        checkingD[2] = 1
-                    elif j == [2, 2]:
-                        checkingD[3] = 1
-                    if checkingD[0] and checkingD[3] == 1:
-                        wins += 1
-                        reset()
-                        break
-                    elif checkingD[1] and checkingD[2] == 1:
-                        wins += 1
-                        reset()
-                        break
-            else:
-                for j in taken0:
-                    if i != j:
-                        if i[0] == j[0]:
-                            checkingX[i[0]] += 1
+def saveNet():
+    save_network(n, f"networks/3iaR_{games}.nn")
+    print("Saved 3iaR_", games, ".nn")
 
-                        elif i[1] == j[1]:
-                            checkingY[i[1]] += 1
-                for j in range(2):
-                    if checkingX[j] == 3 or checkingY[j] == 3:
-                        wins += 1
-                        reset()
-                        break
-    
-    turn  = not turn
-
+lbl = Label(wn, text=wins)
+saveBtn = Button(wn, text="Save network", activebackground="blue", activeforeground="white", disabledforeground="gray", command=saveNet)
+loadBtn = Button(wn, text="Load network", activebackground="blue", activeforeground="white", disabledforeground="gray", command=loadNet)
 
 lbl.pack()
+saveBtn.pack()
+loadBtn.pack()
 cv.pack()
 cv.bind("<Button-1>", callback)
+reset()
 wn.mainloop()
