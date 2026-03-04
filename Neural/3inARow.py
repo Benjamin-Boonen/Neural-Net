@@ -60,9 +60,10 @@ def callback(event):
         takenNr.append(cord[1]*3 + cord[0])
 
         checkWin()
-
+        print(turn)
         if len(taken) == 9:
             reset()
+            turn = False
 
     if turn:
         feed = buildFeed()
@@ -86,11 +87,10 @@ def callback(event):
         checkWin()
 
         if len(taken) == 9:
-            reset()
+            reset()    
+            turn = False
 
-    print(turn)
-    
-         
+
 def reset():
     global lbl, turn
 
@@ -104,7 +104,8 @@ def reset():
     taken0.clear()
     taken1.clear()
     takenNr.clear()
-    turn = False
+    turn = True
+
 
     print("Reset")
 
