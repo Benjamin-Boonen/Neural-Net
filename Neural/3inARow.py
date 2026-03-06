@@ -26,16 +26,16 @@ cv.create_rectangle(0, 65*scl, 100*scl, 70*scl, fill="RED", outline="RED")
 def callback(event):
     global turn, wins
 
-    if event.x < 30*scl:
+    if event.x < 35*scl:
         cx = 0
-    elif event.x > 70*scl:
+    elif event.x > 65*scl:
         cx = 2
     else:
         cx = 1
 
-    if event.y < 30*scl:
+    if event.y < 35*scl:
         cy = 0
-    elif event.y > 70*scl:
+    elif event.y > 65*scl:
         cy = 2
     else:
         cy = 1
@@ -47,7 +47,7 @@ def callback(event):
         getRekt(cord, players[turn])
         cv.update()
 
-        taken.append(cord)
+        taken.append(cord)  
         taken0.append(cord)
         takenNr.append(cord[1]*3 + cord[0])
 
@@ -59,7 +59,7 @@ def callback(event):
             return
         turn = not turn
 
-    elif turn:      #if/elif   Switch for PvA/PvP
+    elif legal and turn:      #if/elif   Switch for PvA/PvP
         feed = buildFeed()
         output = f_propagation(n, feed)
         
@@ -76,9 +76,9 @@ def callback(event):
         #getRekt(target, players[turn])       #Switch for PvA/PvP
         getRekt(cord, players[turn])        #Switch for PvA/PvP
         
-        taken.append(target)
-        taken1.append(target)
-        takenNr.append(ind)
+        taken.append(cord)        #target/cord      Switch for PvA/PvP
+        taken1.append(cord)
+        takenNr.append(cord[1]*3 + cord[0])         #ind/cord[1]*3 + cord[0     Switch for PvA/PvP
 
         before = games
         checkWin()
@@ -96,7 +96,8 @@ def reset():
     cv.create_rectangle(65*scl, 0, 70*scl, 100*scl, fill="RED")
     cv.create_rectangle(0, 30*scl, 100*scl, 35*scl, fill="RED", outline="RED")
     cv.create_rectangle(0, 65*scl, 100*scl, 70*scl, fill="RED", outline="RED")
-    lbl.config(text=wins)
+    lblW.config(text=wins)
+    lblG.config(text=games)
     taken.clear()
     taken0.clear()
     taken1.clear()
@@ -163,11 +164,13 @@ def saveNet():
     save_network(n, f"networks/3iaR_{games}.nn")
     print("Saved 3iaR_", games, ".nn")
 
-lbl = Label(wn, text=wins)
+lblW = Label(wn, text=wins)
+lblG = Label(wn, text=games)
 saveBtn = Button(wn, text="Save network", activebackground="blue", activeforeground="white", disabledforeground="gray", command=saveNet)
 loadBtn = Button(wn, text="Load network", activebackground="blue", activeforeground="white", disabledforeground="gray", command=loadNet)
 
-lbl.pack()
+lblW.pack()
+lblG.pack()
 saveBtn.pack()
 loadBtn.pack()
 cv.pack()

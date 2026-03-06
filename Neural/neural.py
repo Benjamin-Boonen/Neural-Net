@@ -115,7 +115,6 @@ class Layer:
         new_weights += self._weights
         self.set_weights(new_weights)
 
-
 class Network:
     def __init__(self, shape=None, weighted=True, is_random=False, activation=SIGMOID):
         # Networks are the brain of our system
