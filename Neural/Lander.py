@@ -83,12 +83,15 @@ class Lander:
         self.t = np.cross(r_rel, f)*np.sin(angle_betw_tan_and_f)
 
 class Floor:
-    def __init__(self):
+    def __init__(self, canv: Canvas):
         self.polygon = None
         self.color = "grey20"
-    
-    def set_poly(self, obj):
-        self.polygon = obj
+        points_left = np.random.random(size = 5)
+        points_right = np.random.random(size = 5)
+        height = 100
+        dist_left = np.ones(5) * 700 + height * points_left
+        dits_right = np.ones(5) * 700 + height * points_right
+        self.object = canv.create_polygon()####### !!!!!!!!
 
 yanny = Lander(canvas, 1)
 yanny.position -= np.array([150, 0])
@@ -105,7 +108,7 @@ def update_frame():
     yanny.render()
     laurel.update(step=0.1)
     laurel.render()
-    root.after(28, update_frame)
+    root.after(16, update_frame)
 
 root.after(10, update_frame)
 root.mainloop()
