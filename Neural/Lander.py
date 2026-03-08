@@ -1,5 +1,6 @@
 from tkinter import *
 import numpy as np
+import random as rd
 
 WIDTH = 1000
 HEIGHT = 1000
@@ -34,7 +35,7 @@ class Lander:
         return self.position, self.angle
 
     def render(self):
-        diag = np.sqrt(self.x_size_body**2 + self.y_size_body)
+        diag = np.sqrt(self.x_size_body**2 + self.y_size_body**2)
         angle_betw = np.atan(self.y_size_body/self.x_size_body)
         p1 = [diag * np.cos(angle_betw + self.angle) + self.position[0], diag * np.sin(angle_betw + self.angle) + self.position[1]]
         p2 = [diag * np.cos(-angle_betw + self.angle) + self.position[0], diag * np.sin(-angle_betw + self.angle) + self.position[1]]
@@ -84,14 +85,29 @@ class Lander:
 
 class Floor:
     def __init__(self, canv: Canvas):
-        self.polygon = None
         self.color = "grey20"
-        points_left = np.random.random(size = 5)
-        points_right = np.random.random(size = 5)
+        self.canv = canv
+        platform_width = 200
+        points = np.random.random(size = 10)
         height = 100
-        dist_left = np.ones(5) * 700 + height * points_left
-        dits_right = np.ones(5) * 700 + height * points_right
-        self.object = canv.create_polygon()####### !!!!!!!!
+        dist = np.ones(10) * 700 + height * points
+        place = rd.randint(0, 10)
+        x_ = [x for x in range(0, WIDTH-platform_width, int((WIDTH-platform_width)/10))]
+        for i in range(len(x_)):
+            if i >= place:
+                x_[i] += platform_width
+        platform_xcoordinates = [int(((x_[place-1] + x_[place])/2) - platform_width // 2),
+                                 int(((x_[place-1] + x_[place])/2) + platform_width // 2)]
+        x_.insert(place, platform_xcoordinates[1])
+        x_.insert(place, platform_xcoordinates[0])
+        dist.tolist().insert(place, height)
+        dist.tolist().insert(place, height)
+        self.points = [x_[i//2] if i%2==0 else dist[(i-1)//2] for i in range(20)]
+        self.points.append(WIDTH); self.points.append(HEIGHT); self.points.append(0); self.points.append(HEIGHT)
+        self.object = self.canv.create_polygon(self.points, fill="green")####### !!!!!!!!
+
+    def render(self):
+        self.object = self.canv.create_polygon(self.points, fill="green")####### !!!!!!!!
 
 yanny = Lander(canvas, 1)
 yanny.position -= np.array([150, 0])
@@ -102,8 +118,11 @@ laurel.position += np.array([150, 0])
 laurel.render()
 laurel.add_torque([laurel.position[0], laurel.position[1]-25], [40, 0])
 
+floor = Floor(canv=canvas)
+
 def update_frame():
     canvas.delete("all")
+    floor.render()
     yanny.update(step=0.1)
     yanny.render()
     laurel.update(step=0.1)
