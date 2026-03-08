@@ -89,25 +89,32 @@ class Floor:
         self.canv = canv
         platform_width = 200
         points = np.random.random(size = 10)
-        height = 100
-        dist = np.ones(10) * 700 + height * points
-        place = rd.randint(0, 10)
+        self.height = 700
+        r = 100
+        dist = np.ones(10) * self.height + r * points
+        place = rd.randint(0, 9)
         x_ = [x for x in range(0, WIDTH-platform_width, int((WIDTH-platform_width)/10))]
+
         for i in range(len(x_)):
             if i >= place:
-                x_[i] += platform_width
-        platform_xcoordinates = [int(((x_[place-1] + x_[place])/2) - platform_width // 2),
+                x_[i] += platform_width + 50
+        self.platform_xcoordinates = [int(((x_[place-1] + x_[place])/2) - platform_width // 2),
                                  int(((x_[place-1] + x_[place])/2) + platform_width // 2)]
-        x_.insert(place, platform_xcoordinates[1])
-        x_.insert(place, platform_xcoordinates[0])
-        dist.tolist().insert(place, height)
-        dist.tolist().insert(place, height)
-        self.points = [x_[i//2] if i%2==0 else dist[(i-1)//2] for i in range(20)]
+        
+        x_.insert(place, self.platform_xcoordinates[1])
+        x_.insert(place, self.platform_xcoordinates[0])
+        dist = dist.tolist()
+        dist.insert(place, self.height); dist.insert(place, self.height)
+        self.points = [x_[i//2] if i%2==0 else dist[(i-1)//2] for i in range(24)]
         self.points.append(WIDTH); self.points.append(HEIGHT); self.points.append(0); self.points.append(HEIGHT)
-        self.object = self.canv.create_polygon(self.points, fill="green")####### !!!!!!!!
+        self.object = self.canv.create_polygon(self.points, fill="green")
+        balls = self.canv.create_oval(self.platform_xcoordinates[0]-10, self.height-10, self.platform_xcoordinates[0]+10, self.height+10, fill="red")
+        balls = self.canv.create_oval(self.platform_xcoordinates[1]-10, self.height-10, self.platform_xcoordinates[1]+10, self.height+10, fill="red")
 
     def render(self):
-        self.object = self.canv.create_polygon(self.points, fill="green")####### !!!!!!!!
+        self.object = self.canv.create_polygon(self.points, fill="green")
+        balls = self.canv.create_oval(self.platform_xcoordinates[0]-10, self.height-10, self.platform_xcoordinates[0]+10, self.height+10, fill="red")
+        balls = self.canv.create_oval(self.platform_xcoordinates[1]-10, self.height-10, self.platform_xcoordinates[1]+10, self.height+10, fill="red")
 
 yanny = Lander(canvas, 1)
 yanny.position -= np.array([150, 0])
