@@ -83,6 +83,16 @@ class Lander:
         angle_betw_tan_and_f = np.dot(np.array(f), unit_tan)/(np.sqrt(np.sum(np.square(f))))
         self.t = np.cross(r_rel, f)*np.sin(angle_betw_tan_and_f)
 
+class Flaggie:
+    def __init__(self, position, canv: Canvas):
+        self.position = position
+        self.pole_thickness = 20
+        self.pole_length = 50
+        self.canv = canv
+
+    def render(self):
+        pole = self.canv
+
 class Floor:
     def __init__(self, canv: Canvas):
         self.color = "grey20"
