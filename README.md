@@ -21,3 +21,6 @@ Update: picking this shit up again fr
 - Optimisation for gestures (Organic LED Motions)
 - Environmental interaction systems (sound systems, motion boards, etc)
 
+## TO-DO Board
+[ ] add a Softmax function
+[ ] introduce Temperature
