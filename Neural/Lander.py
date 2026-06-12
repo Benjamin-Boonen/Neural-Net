@@ -85,13 +85,26 @@ class Lander:
 
 class Flaggie:
     def __init__(self, position, canv: Canvas):
-        self.position = position
-        self.pole_thickness = 20
-        self.pole_length = 50
+        if type(position) == list and len(position) == 2: 
+            self.position = position
+        else: raise TypeError("Position is supposed to be a Vector2, dumbass.")
+        self.pole_thickness = 4
+        self.pole_length = 70
         self.canv = canv
+        self.flagh = 8
+        self.d = 12
 
     def render(self):
-        pole = self.canv
+        pole = self.canv.create_rectangle(self.position[0] - (self.pole_thickness//2),
+                                          self.position[1] - (self.pole_length),
+                                          self.position[0] + (self.pole_thickness//2),
+                                          self.position[1],
+                                          outline="black", fill="grey40")
+        flag = self.canv.create_polygon(self.position[0]+(self.pole_thickness//2), self.position[1] - self.pole_length,
+                                        self.position[0] + self.pole_thickness//2 + self.d, self.position[1] - self.pole_length + self.flagh//2,
+                                        self.position[0] + self.pole_thickness//2, self.position[1] - self.pole_length + self.flagh,
+                                        fill = "red", outline="red")
+
 
 class Floor:
     def __init__(self, canv: Canvas):
@@ -118,13 +131,19 @@ class Floor:
         self.points = [x_[i//2] if i%2==0 else dist[(i-1)//2] for i in range(24)]
         self.points.append(WIDTH); self.points.append(HEIGHT); self.points.append(0); self.points.append(HEIGHT)
         self.object = self.canv.create_polygon(self.points, fill="green")
-        balls = self.canv.create_oval(self.platform_xcoordinates[0]-10, self.height-10, self.platform_xcoordinates[0]+10, self.height+10, fill="red")
-        balls = self.canv.create_oval(self.platform_xcoordinates[1]-10, self.height-10, self.platform_xcoordinates[1]+10, self.height+10, fill="red")
+        #balls = self.canv.create_oval(self.platform_xcoordinates[0]-10, self.height-10, self.platform_xcoordinates[0]+10, self.height+10, fill="red")
+        #balls = self.canv.create_oval(self.platform_xcoordinates[1]-10, self.height-10, self.platform_xcoordinates[1]+10, self.height+10, fill="red")
+        self.flagL = Flaggie([self.platform_xcoordinates[0], self.height], canv=self.canv)
+        self.flagR = Flaggie([self.platform_xcoordinates[1], self.height], canv=self.canv)
 
     def render(self):
         self.object = self.canv.create_polygon(self.points, fill="green")
-        balls = self.canv.create_oval(self.platform_xcoordinates[0]-10, self.height-10, self.platform_xcoordinates[0]+10, self.height+10, fill="red")
-        balls = self.canv.create_oval(self.platform_xcoordinates[1]-10, self.height-10, self.platform_xcoordinates[1]+10, self.height+10, fill="red")
+        #balls = self.canv.create_oval(self.platform_xcoordinates[0]-10, self.height-10, self.platform_xcoordinates[0]+10, self.height+10, fill="red")
+        #balls = self.canv.create_oval(self.platform_xcoordinates[1]-10, self.height-10, self.platform_xcoordinates[1]+10, self.height+10, fill="red")
+        self.flagL = Flaggie([self.platform_xcoordinates[0], self.height], canv=self.canv)
+        self.flagR = Flaggie([self.platform_xcoordinates[1], self.height], canv=self.canv)
+        self.flagL.render()
+        self.flagR.render()
 
 yanny = Lander(canvas, 1)
 yanny.position -= np.array([150, 0])
