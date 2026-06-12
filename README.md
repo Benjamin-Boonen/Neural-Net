@@ -22,5 +22,5 @@ Update: picking this shit up again fr
 - Environmental interaction systems (sound systems, motion boards, etc)
 
 ## TO-DO Board
-[ ] add a Softmax function
-[ ] introduce Temperature
+- [ ] add a Softmax function
+- [ ] introduce Temperature
