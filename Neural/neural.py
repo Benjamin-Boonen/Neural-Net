@@ -1,7 +1,7 @@
 import random
 import numpy as np
 import ast
-
+import scipy as scp
 
 """
 No 'neuron' or 'node' is defined, all will be held in matrices in the Layer class.
@@ -116,7 +116,7 @@ class Layer:
         self.set_weights(new_weights)
 
 class Network:
-    def __init__(self, shape=None, weighted=True, is_random=False, activation=SIGMOID):
+    def __init__(self, shape=None, weighted=True, is_random=False, softmax=True, activation=SIGMOID):
         # Networks are the brain of our system
         # We give the shape of a network using [a, b, ..., z]
         # where a is the amount of input nodes, z the amount of output nodes
@@ -373,7 +373,7 @@ def tanh(x: float):
     for n in xs:
         out.append(2*sigmoid(2*n) -1)
     return np.array(out)
-    
+
 def calc_loss(recieved, expected):
     difference = np.array(recieved) - np.array(expected)
     loss = np.square(difference)
