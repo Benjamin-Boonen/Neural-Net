@@ -1,0 +1,135 @@
+from tkinter import *
+from neural import *
+import numpy as np
+import struct
+scale = 20
+
+win = Tk()
+win.title("MNIST Test")
+
+canvas = Canvas(win, width=28*scale, height=28*scale, bg="white")
+
+grid = np.zeros(784)
+
+model = "mnist_100k.nn"
+n = load_network(f'networks/{model}')
+
+def load_images(filename):
+    with open(filename, 'rb') as f:
+        magic, num, rows, cols = struct.unpack(">IIII", f.read(16))
+        images = np.frombuffer(f.read(), dtype=np.uint8)
+        images = images.reshape(num, rows * cols)
+        images = images / 255.0  # normalize 0-1
+        return images
+    
+def load_labels(filename):
+    with open(filename, 'rb') as f:
+        magic, num = struct.unpack(">II", f.read(8))
+        labels = np.frombuffer(f.read(), dtype=np.uint8)
+        return labels
+
+def one_hot(label, size=10):
+    vec = np.zeros(size)
+    vec[label] = 1
+    return vec
+
+guess = 0
+
+#Actually load the imgages and labels
+#train images are for training and testing for the final test (obv)
+train_images = load_images("Neural/MNIST Dataset/mnist/train-images.idx3-ubyte")
+train_labels = load_labels("Neural/MNIST Dataset/mnist/train-labels.idx1-ubyte")
+
+sensitivity = 1
+text_var = StringVar()
+text_var.set(f"Guess: {guess}")
+est = Label(win, textvariable=text_var, height=3, width=30, bg="white", font=("Helvetica", 16, "bold"))
+est.pack()
+
+mousedown = False
+drawradius = 750
+
+def gridrender(grid=grid, canvas=canvas):
+    global guess
+    canvas.delete("all")
+    for e in range(len(grid)):
+        collumn = e % 28
+        row = e // 28
+        color = (grid[e]*100)
+        color = "grey"+str(int(100-color))
+        #print(f"square {e} has value {color}")
+        square = canvas.create_rectangle(collumn*scale, row*scale, (collumn+1)*scale, (row+1)*scale, fill=color)
+        if not mousedown:
+            guess = f_propagation(n, grid)
+            guess = guess.tolist().index(np.max(guess))
+            text_var.set(f"Guess: {guess}")
+        else:
+            text_var.set(f"Waiting for mouse_up...")
+
+def get_image(grid=grid):
+    x = random.randint(0, len(train_images)-1)
+    new_grid = train_images[x]
+    for e in range(len(grid)):
+        grid[e] = new_grid[e]
+    gridrender()
+
+canvas.pack()
+gridrender()
+def rando(grid=grid):
+    for e in range(len(grid)):
+        grid[e] = np.random.rand()
+    gridrender()
+
+def clear():
+    for e in range(len(grid)):
+        grid[e] = 0
+    gridrender()
+
+def key(event):
+    #print("pressed")
+    repr(event.char)
+
+def click_down(event):
+    global mousedown
+    #print("clicked at", event.x, event.y)
+    mousedown = True
+
+def click_up(event):
+    global mousedown
+    #print("released at", event.x, event.y)
+    mousedown = False
+    gridrender()
+
+def color_squares_in_radius(x, y, radius=drawradius):
+    for e in range(len(grid)):
+        x_square = (e % 28)*scale + scale//2
+        y_square = (e // 28)*scale + scale//2
+
+        if (x_square-x)**2 + (y_square-y)**2 <= drawradius:
+            d = np.sqrt((x_square-x)**2 + (y_square-y)**2)
+            amt = (-((d/drawradius)**4)+1)/3
+            color_square(e, amt=amt)
+
+def color_square(square, grid=grid, amt=1):
+    grid[square] = max(min(1, grid[square] + amt), 0)
+    #print(grid[s], "color")
+
+def moved(event):
+    global mousedown
+    #print("moved to:", event.x, event.y, mousedown)
+    if mousedown:
+        color_squares_in_radius(event.x, event.y)
+        gridrender()
+
+#canvas.bind("<Key>", key)
+canvas.bind("<ButtonPress-1>", click_down)
+canvas.bind("<ButtonRelease-1>", click_up)
+canvas.bind('<Motion>', moved)
+
+
+rand_button = Button(win, text="random image", command=get_image)
+rand_button.pack()
+clear_button = Button(win, text="clear", command=clear)
+clear_button.pack()
+
+win.mainloop()
