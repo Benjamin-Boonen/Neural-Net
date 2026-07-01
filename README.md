@@ -24,7 +24,7 @@ Update: picking this shit up again fr
 ## TO-DO Board
 - [ ] add a Softmax function
 - [ ] introduce Temperature
-Tester Code
+### Tester Code
 - [x] randomly generate binary dataset
 - [x] multiply dimensionality
 - [x] Flagging algorithm
